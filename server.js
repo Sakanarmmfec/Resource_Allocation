@@ -134,9 +134,11 @@ function requireAnyUser(req, res, next) {
 
 // Initialize PostgreSQL connection pool for Render
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://admin:TslQFDkaY7VpeBo4WNDbdsjvWYeil3F6@dpg-d2c3dmqdbo4c73bb4eu0-a.oregon-postgres.render.com/resource_allocation',
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    connectionTimeoutMillis: 10000
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 15000,
+    idleTimeoutMillis: 30000,
+    max: 20
 });
 
 // Create tables if they don't exist
