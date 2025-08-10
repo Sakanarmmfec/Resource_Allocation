@@ -1408,7 +1408,20 @@
         function generateHierarchicalHeader(weeks) {
             if (weeks.length === 0) return '';
             
-            // Group weeks by year, quarter, month
+            if (currentView === 'month') {
+                // Simple single-row header for monthly view
+                let html = '<tr>';
+                html += '<th style="width: 200px; background: rgb(80,70,228); color: white;">Employee / Project</th>';
+                weeks.forEach(week => {
+                    const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    html += `<th class="week-header" style="background: rgb(80,70,228); color: white; font-weight: 500; text-align: center;">${monthNames[week.month]}</th>`;
+                });
+                html += '<th style="background: rgb(80,70,228); color: white; font-weight: 700;">Total</th>';
+                html += '</tr>';
+                return html;
+            }
+            
+            // Complex multi-row header for weekly/yearly views
             const yearGroups = {};
             weeks.forEach((week, index) => {
                 const year = week.year;
@@ -1444,30 +1457,25 @@
             });
             html += '</tr>';
             
-            // Month row (skip for monthly view as it's redundant)
-            if (currentView !== 'month') {
-                html += '<tr>';
-                Object.keys(yearGroups).forEach(year => {
-                    Object.keys(yearGroups[year]).forEach(quarter => {
-                        Object.keys(yearGroups[year][quarter]).forEach(month => {
-                            const monthWeeks = yearGroups[year][quarter][month];
-                            const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                            html += `<th colspan="${monthWeeks.length}" style="background: rgb(80,70,228); color: white; font-weight: 600; text-align: center;">${monthNames[month]}</th>`;
-                        });
+            // Month row
+            html += '<tr>';
+            Object.keys(yearGroups).forEach(year => {
+                Object.keys(yearGroups[year]).forEach(quarter => {
+                    Object.keys(yearGroups[year][quarter]).forEach(month => {
+                        const monthWeeks = yearGroups[year][quarter][month];
+                        const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        html += `<th colspan="${monthWeeks.length}" style="background: rgb(80,70,228); color: white; font-weight: 600; text-align: center;">${monthNames[month]}</th>`;
                     });
                 });
-                html += '</tr>';
-            }
+            });
+            html += '</tr>';
             
-            // Week/Month row (bottom row)
-            if (currentView !== 'month') {
-                // Only show week row for non-monthly views
-                html += '<tr>';
-                weeks.forEach(week => {
-                    html += `<th class="week-header" style="background: rgb(80,70,228); color: white; font-weight: 500; text-align: center;">W${week.weekOfMonth || 1}</th>`;
-                });
-                html += '</tr>';
-            }
+            // Week row
+            html += '<tr>';
+            weeks.forEach(week => {
+                html += `<th class="week-header" style="background: rgb(80,70,228); color: white; font-weight: 500; text-align: center;">W${week.weekOfMonth || 1}</th>`;
+            });
+            html += '</tr>';
             
             return html;
         }
@@ -2567,22 +2575,14 @@
         }
         
         function calculateWeekValue(year, month, weekOfMonth) {
-            // For 2026/01/W1 format, calculate the actual week number
+            // Calculate the first day of the specified week in the month
             const firstDayOfMonth = new Date(year, month - 1, 1);
-            
-            // Find the first Monday of the month or the Monday of the first week
-            let targetDate = new Date(firstDayOfMonth);
-            
-            // Adjust to the start of the specified week of the month
-            const daysToAdd = (weekOfMonth - 1) * 7;
-            targetDate.setDate(1 + daysToAdd);
+            const firstWeekStart = new Date(firstDayOfMonth);
+            firstWeekStart.setDate(1 + (weekOfMonth - 1) * 7);
             
             // Get the ISO week number for this date
-            const weekNumber = getWeekNumber(targetDate);
-            const weekValue = weekNumber + (year * 100);
-            
-            console.log(`Week calculation: ${year}/${String(month).padStart(2, '0')}/W${weekOfMonth} -> Week ${weekNumber} -> Value ${weekValue}`);
-            return weekValue;
+            const weekNumber = getWeekNumber(firstWeekStart);
+            return weekNumber + (year * 100);
         }
         
         function showAllocationConfirmation(employee, project, days, timeInfo, originalTimeString) {
