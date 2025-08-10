@@ -375,19 +375,21 @@
     <script>
         let employees = [];
 
+        const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api';
+
         // Load employees and their allocation data
         async function loadEmployees() {
             try {
                 // Load employees
-                const employeeResponse = await fetch('http://localhost:5000/api/employees');
+                const employeeResponse = await fetch(`${API_BASE}/employees`);
                 employees = await employeeResponse.json();
                 
                 // Load efforts data to show allocation status
-                const effortsResponse = await fetch('http://localhost:5000/api/efforts');
+                const effortsResponse = await fetch(`${API_BASE}/efforts`);
                 const efforts = await effortsResponse.json();
                 
                 // Load projects data
-                const projectsResponse = await fetch('http://localhost:5000/api/projects');
+                const projectsResponse = await fetch(`${API_BASE}/projects`);
                 const projects = await projectsResponse.json();
                 
                 const select = document.getElementById('employeeSelect');
@@ -577,7 +579,7 @@
                 if (cc) requestBody.cc = cc;
                 if (bcc) requestBody.bcc = bcc;
                 
-                const response = await fetch('http://localhost:5000/api/send-allocation-email', {
+                const response = await fetch(`${API_BASE}/send-allocation-email`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -642,7 +644,7 @@
                 if (bulkCc) requestBody.cc = bulkCc;
                 if (bulkBcc) requestBody.bcc = bulkBcc;
                 
-                const response = await fetch('http://localhost:5000/api/send-bulk-allocation-emails', {
+                const response = await fetch(`${API_BASE}/send-bulk-allocation-emails`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
