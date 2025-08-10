@@ -298,10 +298,11 @@
         async function updateProjectType(id, type) {
             try {
                 console.log('Updating project:', id, 'to type:', type);
+                const currentName = document.getElementById(`proj-name-${id}`).textContent;
                 const response = await fetch(`${API_BASE}/projects/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type })
+                    body: JSON.stringify({ name: currentName, type })
                 });
                 
                 const result = await response.json();
@@ -357,10 +358,12 @@
             if (!newName) return;
             
             try {
+                const currentTypeSelect = document.querySelector(`tr:has([id="proj-name-${id}"]) select`);
+                const currentType = currentTypeSelect ? currentTypeSelect.value : 'project';
                 const response = await fetch(`${API_BASE}/projects/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: newName })
+                    body: JSON.stringify({ name: newName, type: currentType })
                 });
                 
                 if (response.ok) {

@@ -388,7 +388,7 @@ app.post('/api/project-assignments', requireUserOrAdmin, async (req, res) => {
     }
 });
 
-app.delete('/api/project-assignments', async (req, res) => {
+app.delete('/api/project-assignments', requireUserOrAdmin, async (req, res) => {
     const { employeeId, projectId } = req.body;
     const client = await pool.connect();
     try {
@@ -417,7 +417,7 @@ app.get('/api/project-assignments', requireAnyUser, async (req, res) => {
     }
 });
 
-app.delete('/api/efforts', async (req, res) => {
+app.delete('/api/efforts', requireUserOrAdmin, async (req, res) => {
     const client = await pool.connect();
     try {
         const result = await client.query('DELETE FROM efforts');
@@ -429,7 +429,7 @@ app.delete('/api/efforts', async (req, res) => {
     }
 });
 
-app.delete('/api/efforts/clear-view', async (req, res) => {
+app.delete('/api/efforts/clear-view', requireUserOrAdmin, async (req, res) => {
     const { employeeIds, weekValues } = req.body;
     
     if (!employeeIds || !weekValues) {
@@ -523,7 +523,7 @@ app.delete('/api/employees/:id', requireUserOrAdmin, async (req, res) => {
     }
 });
 
-app.put('/api/projects/:id', async (req, res) => {
+app.put('/api/projects/:id', requireUserOrAdmin, async (req, res) => {
     const projectId = req.params.id;
     const { name, type } = req.body;
     const client = await pool.connect();
@@ -541,7 +541,7 @@ app.put('/api/projects/:id', async (req, res) => {
 });
 
 // Department endpoints
-app.post('/api/departments', async (req, res) => {
+app.post('/api/departments', requireUserOrAdmin, async (req, res) => {
     const { name } = req.body;
     
     if (!name) {
@@ -578,7 +578,7 @@ app.get('/api/departments', requireAnyUser, async (req, res) => {
     }
 });
 
-app.put('/api/departments/:id', async (req, res) => {
+app.put('/api/departments/:id', requireUserOrAdmin, async (req, res) => {
     const departmentId = req.params.id;
     const { name } = req.body;
     
@@ -604,7 +604,7 @@ app.put('/api/departments/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/departments/:id', async (req, res) => {
+app.delete('/api/departments/:id', requireUserOrAdmin, async (req, res) => {
     const departmentId = req.params.id;
     const client = await pool.connect();
     
