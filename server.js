@@ -540,6 +540,25 @@ app.put('/api/projects/:id', requireUserOrAdmin, async (req, res) => {
     }
 });
 
+app.delete('/api/projects/:id', requireUserOrAdmin, async (req, res) => {
+    const projectId = req.params.id;
+    const client = await pool.connect();
+    
+    try {
+        await client.query('BEGIN');
+        await client.query('DELETE FROM efforts WHERE projectId = $1', [projectId]);
+        await client.query('DELETE FROM project_assignments WHERE projectId = $1', [projectId]);
+        const result = await client.query('DELETE FROM projects WHERE id = $1', [projectId]);
+        await client.query('COMMIT');
+        res.json({ success: true, deleted: result.rowCount });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
 // Department endpoints
 app.post('/api/departments', requireUserOrAdmin, async (req, res) => {
     const { name } = req.body;
