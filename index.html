@@ -1457,10 +1457,17 @@
             });
             html += '</tr>';
             
-            // Week row
+            // Week/Month row (bottom row)
             html += '<tr>';
             weeks.forEach(week => {
-                html += `<th class="week-header" style="background: rgb(80,70,228); color: white; font-weight: 500; text-align: center;">W${week.weekOfMonth || 1}</th>`;
+                if (currentView === 'month') {
+                    // For monthly view, show month abbreviation
+                    const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    html += `<th class="week-header" style="background: rgb(80,70,228); color: white; font-weight: 500; text-align: center;">${monthNames[week.month]}</th>`;
+                } else {
+                    // For weekly view, show week number
+                    html += `<th class="week-header" style="background: rgb(80,70,228); color: white; font-weight: 500; text-align: center;">W${week.weekOfMonth || 1}</th>`;
+                }
             });
             html += '</tr>';
             
