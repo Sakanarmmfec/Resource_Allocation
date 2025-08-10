@@ -1,0 +1,9 @@
+@echo off
+echo Stopping any existing server...
+taskkill /f /im node.exe 2>nul
+timeout /t 2 /nobreak >nul
+echo Starting server...
+start /b node server.js
+timeout /t 3 /nobreak >nul
+echo Testing chat endpoint...
+curl -X POST http://localhost:5000/api/chat -H "Content-Type: application/json" -d "{\"message\":\"Hello test\"}"

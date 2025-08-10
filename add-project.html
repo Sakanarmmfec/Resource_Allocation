@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Project - Resource Allocation</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 80px 20px 20px 20px;
+            background: white;
+            min-height: 100vh;
+            font-size: 14px;
+            color: #334155;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+            margin: 0 auto;
+            max-width: 600px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.2s forwards;
+        }
+        
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+
+        
+        h1 {
+            color: #1e3a8a;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+        
+        .nav-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #1e3a8a;
+        }
+        
+        .form-section {
+            background: #f8fafc;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.4s forwards;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+            background: white;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <script src="menu-bar.js"></script>
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 12px; white-space: nowrap;">
+        <span id="userInfo" style="color: #374151; font-weight: 500; white-space: nowrap;"></span>
+        <a href="admin.html" id="adminLink" style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; display: none; white-space: nowrap;">🛡️ Admin</a>
+        <button onclick="logout()" style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; white-space: nowrap;">Logout</button>
+    </div>
+    <div class="container">
+        <a href="index.html" class="nav-link">← Back to Home</a>
+        
+        <h1>📋 Add Project</h1>
+        
+        <div class="form-section">
+            <div id="successMessage" class="success-message"></div>
+            <div id="errorMessage" class="error-message"></div>
+            
+            <div class="form-group">
+                <label for="projectName">Project Name</label>
+                <input type="text" id="projectName" placeholder="Enter project name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="projectType">Project Type</label>
+                <select id="projectType" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+                    <option value="project">Paid Project</option>
+                    <option value="presale">Non Project</option>
+                </select>
+            </div>
+            
+            <button onclick="addProject()">Add Project</button>
+        </div>
+        
+        <div style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="color: #1e3a8a; font-size: 20px; font-weight: 600; margin: 0;">Project List</h2>
+                <button onclick="downloadProjects()" style="background: #10b981; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; width: fit-content;">Download Master</button>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <input type="text" id="searchProject" placeholder="🔍 Search projects by name or type..." onkeyup="filterProjects()" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+            </div>
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th onclick="sortTable(0)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">ID <span id="sort-0">↕</span></th>
+                        <th onclick="sortTable(1)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Project Name <span id="sort-1">↕</span></th>
+                        <th onclick="sortTable(2)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Type <span id="sort-2">↕</span></th>
+                        <th style="padding: 12px; text-align: center; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="projectsList">
+                    <tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Loading projects...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function addProject() {
+            const name = document.getElementById('projectName').value.trim();
+            const type = document.getElementById('projectType').value;
+            
+            hideMessages();
+            
+            if (!name) {
+                showError('Please enter project name');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/projects`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, type })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('projectName').value = '';
+                    showSuccess(`Project "${name}" added successfully!`);
+                    loadProjects();
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error adding project. Please try again.');
+                }
+            } catch (error) {
+                showError('Connection error. Please check if the server is running.');
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${API_BASE}/projects`);
+                const projects = await response.json();
+                
+                if (projects.length === 0) {
+                    document.getElementById('projectsList').innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">No projects found</td></tr>';
+                    return;
+                }
+                
+                const html = projects.map(proj => `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 12px; color: #374151;">${proj.id}</td>
+                        <td style="padding: 12px;">
+                            <span id="proj-name-${proj.id}" style="font-weight: 500; color: #1e3a8a;">${proj.name}</span>
+                            <input type="text" id="edit-proj-name-${proj.id}" value="${proj.name}" onblur="saveProjEdit(${proj.id})" onkeypress="if(event.key==='Enter') saveProjEdit(${proj.id})" style="display: none; border: 1px solid #d1d5db; padding: 4px 8px; border-radius: 4px; font-size: 14px; width: 200px;">
+                        </td>
+                        <td style="padding: 12px;">
+                            <select onchange="updateProjectType(${proj.id}, this.value)" style="font-size: 12px; padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; background: white;">
+                                <option value="project" ${(proj.type || 'project') === 'project' ? 'selected' : ''}>Paid Project</option>
+                                <option value="presale" ${proj.type === 'presale' ? 'selected' : ''}>Non Project</option>
+                            </select>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button onclick="editProjName(${proj.id})" style="background: #10b981; color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; margin-right: 4px; font-weight: 500; width: fit-content;">Edit</button>
+                            <button onclick="deleteProject(${proj.id}, '${proj.name}')" style="background: #ef4444; color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; font-weight: 500; width: fit-content;">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('projectsList').innerHTML = html;
+            } catch (error) {
+                document.getElementById('projectsList').innerHTML = '<p style="color: #ef4444; text-align: center;">Error loading projects</p>';
+            }
+        }
+        
+        // Allow Enter key to submit form only when not editing
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.target.id.startsWith('edit-proj-name-')) {
+                addProject();
+            }
+        });
+        
+        async function updateProjectType(id, type) {
+            try {
+                console.log('Updating project:', id, 'to type:', type);
+                const response = await fetch(`${API_BASE}/projects/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type })
+                });
+                
+                const result = await response.json();
+                console.log('Update response:', result);
+                
+                if (response.ok) {
+                    showSuccess('Project type updated successfully!');
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                    loadProjects();
+                } else {
+                    showError(result.error || 'Error updating project type.');
+                    loadProjects();
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                showError('Connection error. Please check if the server is running.');
+                loadProjects();
+            }
+        }
+        
+        async function deleteProject(id, name) {
+            if (!confirm(`Are you sure you want to delete project "${name}"? This will also delete all related workload data.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/projects/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showSuccess(`Project "${name}" deleted successfully!`);
+                    loadProjects();
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error deleting project. Please try again.');
+                }
+            } catch (error) {
+                showError('Connection error. Please check if the server is running.');
+            }
+        }
+        
+        function editProjName(id) {
+            document.getElementById(`proj-name-${id}`).style.display = 'none';
+            document.getElementById(`edit-proj-name-${id}`).style.display = 'inline';
+            document.getElementById(`edit-proj-name-${id}`).focus();
+        }
+        
+        async function saveProjEdit(id) {
+            const newName = document.getElementById(`edit-proj-name-${id}`).value.trim();
+            if (!newName) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/projects/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+                
+                if (response.ok) {
+                    document.getElementById(`proj-name-${id}`).textContent = newName;
+                    document.getElementById(`proj-name-${id}`).style.display = 'inline';
+                    document.getElementById(`edit-proj-name-${id}`).style.display = 'none';
+                    showSuccess('Project name updated successfully!');
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error updating project name.');
+                }
+            } catch (error) {
+                showError('Connection error.');
+            }
+        }
+        
+        function downloadProjects() {
+            let csvContent = 'ID,Project Name,Type\n';
+            
+            const projectsList = document.getElementById('projectsList');
+            const projectElements = projectsList.querySelectorAll('[id^="proj-name-"]');
+            
+            projectElements.forEach(element => {
+                const id = element.id.split('-')[2];
+                const name = element.textContent;
+                const selectElement = element.parentElement.querySelector('select');
+                const type = selectElement ? (selectElement.value === 'presale' ? 'Non Project' : 'Paid Project') : 'Paid Project';
+                csvContent += `"${id}","${name}","${type}"\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'projects.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/user');
+                const user = await response.json();
+                document.getElementById('userInfo').textContent = `Welcome, ${user.name}`;
+                
+                if (user.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+                
+                if (user.role === 'viewer') {
+                    disableEditingForViewer();
+                } else if (user.role === 'user') {
+                    disableEditingForUser();
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        function disableEditingForViewer() {
+            document.getElementById('projectName').disabled = true;
+            document.getElementById('projectType').disabled = true;
+            document.querySelector('button[onclick="addProject()"]').style.display = 'none';
+            document.querySelector('button[onclick="downloadProjects()"]').style.display = 'none';
+            
+            const observer = new MutationObserver(() => {
+                const editButtons = document.querySelectorAll('button[onclick*="editProjName"], button[onclick*="deleteProject"], select[onchange*="updateProjectType"]');
+                editButtons.forEach(btn => {
+                    btn.style.display = 'none';
+                    if (btn.tagName === 'SELECT') btn.disabled = true;
+                });
+            });
+            observer.observe(document.getElementById('projectsList'), { childList: true, subtree: true });
+        }
+        
+        function disableEditingForUser() {
+            document.getElementById('projectName').disabled = true;
+            document.getElementById('projectType').disabled = true;
+            document.querySelector('button[onclick="addProject()"]').style.display = 'none';
+            
+            const observer = new MutationObserver(() => {
+                const editButtons = document.querySelectorAll('button[onclick*="editProjName"], button[onclick*="deleteProject"], select[onchange*="updateProjectType"]');
+                editButtons.forEach(btn => {
+                    btn.style.display = 'none';
+                    if (btn.tagName === 'SELECT') btn.disabled = true;
+                });
+            });
+            observer.observe(document.getElementById('projectsList'), { childList: true, subtree: true });
+        }
+        
+        function navigateWithTransition(url) {
+            document.body.style.opacity = '0';
+            document.body.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 300);
+        }
+        
+        // Logout function with smooth delay
+        function logout() {
+            const logoutBtn = event.target;
+            logoutBtn.textContent = '🔄 Logging out...';
+            logoutBtn.style.opacity = '0.7';
+            logoutBtn.disabled = true;
+            setTimeout(() => {
+                navigateWithTransition('/logout');
+            }, 800);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('a[href]:not([onclick])');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.href && !this.href.includes('#') && !this.target) {
+                        e.preventDefault();
+                        navigateWithTransition(this.href);
+                    }
+                });
+            });
+        });
+        
+        function filterProjects() {
+            const searchTerm = document.getElementById('searchProject').value.toLowerCase();
+            const rows = document.querySelectorAll('#projectsList tr');
+            
+            rows.forEach(row => {
+                const nameCell = row.querySelector('[id^="proj-name-"]');
+                const typeCell = row.querySelector('td:nth-child(3) select');
+                
+                if (nameCell) {
+                    const projectName = nameCell.textContent.toLowerCase();
+                    let projectType = '';
+                    
+                    if (typeCell) {
+                        projectType = typeCell.options[typeCell.selectedIndex].text.toLowerCase();
+                    }
+                    
+                    const matches = projectName.includes(searchTerm) || projectType.includes(searchTerm);
+                    row.style.display = matches ? '' : 'none';
+                }
+            });
+        }
+        
+        let sortDirection = {};
+        function sortTable(columnIndex) {
+            const tbody = document.getElementById('projectsList');
+            const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.querySelector('[id^="proj-name-"]'));
+            
+            sortDirection[columnIndex] = !sortDirection[columnIndex];
+            const isAsc = sortDirection[columnIndex];
+            
+            // Update arrow indicators
+            document.querySelectorAll('[id^="sort-"]').forEach(span => span.textContent = '↕');
+            document.getElementById(`sort-${columnIndex}`).textContent = isAsc ? '↓' : '↑';
+            
+            rows.sort((a, b) => {
+                let aVal, bVal;
+                if (columnIndex === 0) {
+                    aVal = parseInt(a.cells[0].textContent);
+                    bVal = parseInt(b.cells[0].textContent);
+                } else if (columnIndex === 1) {
+                    aVal = a.querySelector('[id^="proj-name-"]').textContent.toLowerCase();
+                    bVal = b.querySelector('[id^="proj-name-"]').textContent.toLowerCase();
+                } else {
+                    const aSelect = a.querySelector('td:nth-child(3) select');
+                    const bSelect = b.querySelector('td:nth-child(3) select');
+                    aVal = aSelect ? aSelect.options[aSelect.selectedIndex].text.toLowerCase() : '';
+                    bVal = bSelect ? bSelect.options[bSelect.selectedIndex].text.toLowerCase() : '';
+                }
+                return isAsc ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        // Load projects on page load
+        loadProjects();
+        loadUserInfo();
+    </script>
+</body>
+</html>

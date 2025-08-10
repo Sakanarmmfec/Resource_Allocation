@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Department - Resource Allocation</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+
+        body { 
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 80px 20px 20px 20px;
+            background: white;
+            min-height: 100vh;
+            font-size: 14px;
+            color: #334155;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+            margin: 0 auto;
+            max-width: 600px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.2s forwards;
+        }
+        
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #1e3a8a;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+        
+        .nav-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #1e3a8a;
+        }
+        
+        .form-section {
+            background: #f8fafc;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.4s forwards;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+            background: white;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <script src="menu-bar.js"></script>
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 12px; white-space: nowrap;">
+        <span id="userInfo" style="color: #374151; font-weight: 500; white-space: nowrap;"></span>
+        <a href="admin.html" id="adminLink" style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; display: none; white-space: nowrap;">🛡️ Admin</a>
+        <button onclick="logout()" style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; white-space: nowrap;">Logout</button>
+    </div>
+    <div class="container">
+        <a href="index.html" class="nav-link">← Back to Home</a>
+        
+        <h1>🏢 Add Department</h1>
+        
+        <div class="form-section">
+            <div id="successMessage" class="success-message"></div>
+            <div id="errorMessage" class="error-message"></div>
+            
+            <div class="form-group">
+                <label for="departmentName">Department Name</label>
+                <input type="text" id="departmentName" placeholder="Enter department name" required>
+            </div>
+            
+            <button onclick="addDepartment()">Add Department</button>
+        </div>
+        
+        <div style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="color: #1e3a8a; font-size: 20px; font-weight: 600; margin: 0;">Department List</h2>
+                <button onclick="downloadDepartments()" style="background: #10b981; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; width: fit-content;">Download Master</button>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <input type="text" id="searchDepartment" placeholder="🔍 Search departments..." onkeyup="filterDepartments()" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+            </div>
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th onclick="sortTable(0)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">ID <span id="sort-0">↕</span></th>
+                        <th onclick="sortTable(1)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Department Name <span id="sort-1">↕</span></th>
+                        <th style="padding: 12px; text-align: center; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="departmentsList">
+                    <tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">Loading departments...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function addDepartment() {
+            const name = document.getElementById('departmentName').value.trim();
+            
+            hideMessages();
+            
+            if (!name) {
+                showError('Please enter department name');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/departments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('departmentName').value = '';
+                    showSuccess(`Department "${name}" added successfully!`);
+                    loadDepartments();
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError(result.error || 'Error adding department. Please try again.');
+                }
+            } catch (error) {
+                showError('Connection error. Please check if the server is running.');
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        async function loadDepartments() {
+            try {
+                const response = await fetch(`${API_BASE}/departments`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const departments = await response.json();
+                
+                if (departments.length === 0) {
+                    document.getElementById('departmentsList').innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #6b7280;">No departments found</td></tr>';
+                    return;
+                }
+                
+                const html = departments.map(dept => `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 12px; color: #374151;">${dept.id}</td>
+                        <td style="padding: 12px;">
+                            <span id="dept-name-${dept.id}" style="font-weight: 500; color: #1e3a8a;">${dept.name}</span>
+                            <input type="text" id="edit-dept-name-${dept.id}" value="${dept.name}" onblur="saveDeptEdit(${dept.id})" onkeypress="if(event.key==='Enter') saveDeptEdit(${dept.id})" style="display: none; border: 1px solid #d1d5db; padding: 4px 8px; border-radius: 4px; font-size: 14px; width: 200px;">
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button onclick="editDeptName(${dept.id})" style="background: #10b981; color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; margin-right: 4px; font-weight: 500; width: fit-content;">Edit</button>
+                            <button onclick="deleteDepartment(${dept.id}, '${dept.name}')" style="background: #ef4444; color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; font-weight: 500; width: fit-content;">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('departmentsList').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading departments:', error);
+                document.getElementById('departmentsList').innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: #ef4444;">Error loading departments. Please check if server is running.</td></tr>';
+            }
+        }
+        
+        function editDeptName(id) {
+            document.getElementById(`dept-name-${id}`).style.display = 'none';
+            document.getElementById(`edit-dept-name-${id}`).style.display = 'inline';
+            document.getElementById(`edit-dept-name-${id}`).focus();
+        }
+        
+        async function saveDeptEdit(id) {
+            const newName = document.getElementById(`edit-dept-name-${id}`).value.trim();
+            if (!newName) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/departments/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+                
+                if (response.ok) {
+                    document.getElementById(`dept-name-${id}`).textContent = newName;
+                    document.getElementById(`dept-name-${id}`).style.display = 'inline';
+                    document.getElementById(`edit-dept-name-${id}`).style.display = 'none';
+                    showSuccess('Department name updated successfully!');
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error updating department name.');
+                }
+            } catch (error) {
+                showError('Connection error.');
+            }
+        }
+        
+        async function deleteDepartment(id, name) {
+            if (!confirm(`Are you sure you want to delete department "${name}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/departments/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showSuccess(`Department "${name}" deleted successfully!`);
+                    loadDepartments();
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error deleting department. Please try again.');
+                }
+            } catch (error) {
+                showError('Connection error. Please check if the server is running.');
+            }
+        }
+        
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addDepartment();
+            }
+        });
+        
+        function downloadDepartments() {
+            let csvContent = 'ID,Department Name\n';
+            
+            const departmentsList = document.getElementById('departmentsList');
+            const departmentElements = departmentsList.querySelectorAll('[id^="dept-name-"]');
+            
+            departmentElements.forEach(element => {
+                const id = element.id.split('-')[2];
+                const name = element.textContent;
+                csvContent += `"${id}","${name}"\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'departments.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/user');
+                const user = await response.json();
+                document.getElementById('userInfo').textContent = `Welcome, ${user.name}`;
+                
+                if (user.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+                
+                if (user.role === 'viewer') {
+                    disableEditingForViewer();
+                } else if (user.role === 'user') {
+                    disableEditingForUser();
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        function disableEditingForViewer() {
+            document.getElementById('departmentName').disabled = true;
+            document.getElementById('departmentName').placeholder = 'View only - Contact admin for editing access';
+            document.querySelector('button[onclick="addDepartment()"]').style.display = 'none';
+            document.querySelector('button[onclick="downloadDepartments()"]').style.display = 'none';
+            
+            const observer = new MutationObserver(() => {
+                const editButtons = document.querySelectorAll('button[onclick*="editDeptName"], button[onclick*="deleteDepartment"]');
+                editButtons.forEach(btn => btn.style.display = 'none');
+            });
+            observer.observe(document.getElementById('departmentsList'), { childList: true, subtree: true });
+        }
+        
+        function disableEditingForUser() {
+            document.getElementById('departmentName').disabled = true;
+            document.getElementById('departmentName').placeholder = 'User role - Contact admin for editing access';
+            document.querySelector('button[onclick="addDepartment()"]').style.display = 'none';
+            
+            const observer = new MutationObserver(() => {
+                const editButtons = document.querySelectorAll('button[onclick*="editDeptName"], button[onclick*="deleteDepartment"]');
+                editButtons.forEach(btn => btn.style.display = 'none');
+            });
+            observer.observe(document.getElementById('departmentsList'), { childList: true, subtree: true });
+        }
+        
+        function navigateWithTransition(url) {
+            document.body.style.opacity = '0';
+            document.body.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 300);
+        }
+        
+        // Logout function with smooth delay
+        function logout() {
+            const logoutBtn = event.target;
+            logoutBtn.textContent = '🔄 Logging out...';
+            logoutBtn.style.opacity = '0.7';
+            logoutBtn.disabled = true;
+            setTimeout(() => {
+                navigateWithTransition('/logout');
+            }, 800);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('a[href]:not([onclick])');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.href && !this.href.includes('#') && !this.target) {
+                        e.preventDefault();
+                        navigateWithTransition(this.href);
+                    }
+                });
+            });
+        });
+        
+        function filterDepartments() {
+            const searchTerm = document.getElementById('searchDepartment').value.toLowerCase();
+            const rows = document.querySelectorAll('#departmentsList tr');
+            
+            rows.forEach(row => {
+                const nameCell = row.querySelector('[id^="dept-name-"]');
+                if (nameCell) {
+                    const departmentName = nameCell.textContent.toLowerCase();
+                    row.style.display = departmentName.includes(searchTerm) ? '' : 'none';
+                }
+            });
+        }
+        
+        let sortDirection = {};
+        function sortTable(columnIndex) {
+            const tbody = document.getElementById('departmentsList');
+            const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.querySelector('[id^="dept-name-"]'));
+            
+            sortDirection[columnIndex] = !sortDirection[columnIndex];
+            const isAsc = sortDirection[columnIndex];
+            
+            // Update arrow indicators
+            document.querySelectorAll('[id^="sort-"]').forEach(span => span.textContent = '↕');
+            document.getElementById(`sort-${columnIndex}`).textContent = isAsc ? '↓' : '↑';
+            
+            rows.sort((a, b) => {
+                let aVal, bVal;
+                if (columnIndex === 0) {
+                    aVal = parseInt(a.cells[0].textContent);
+                    bVal = parseInt(b.cells[0].textContent);
+                } else {
+                    aVal = a.querySelector('[id^="dept-name-"]').textContent.toLowerCase();
+                    bVal = b.querySelector('[id^="dept-name-"]').textContent.toLowerCase();
+                }
+                return isAsc ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        loadDepartments();
+        loadUserInfo();
+    </script>
+</body>
+</html>

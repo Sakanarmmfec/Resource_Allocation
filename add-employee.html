@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Employee - Resource Allocation</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 80px 20px 20px 20px;
+            background: white;
+            min-height: 100vh;
+            font-size: 14px;
+            color: #334155;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+            margin: 0 auto;
+            max-width: 600px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.2s forwards;
+        }
+        
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+
+        
+        h1 {
+            color: #1e3a8a;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+        
+        .nav-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #1e3a8a;
+        }
+        
+        .form-section {
+            background: #f8fafc;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.4s forwards;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+            background: white;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container { max-width: 100%; padding: 20px 15px; }
+            table { font-size: 12px; }
+            th, td { padding: 8px 6px !important; }
+            input, select { font-size: 14px; }
+            button { font-size: 12px; padding: 6px 12px; }
+            h1 { font-size: 24px; }
+            h2 { font-size: 18px; }
+        }
+        
+        @media (max-width: 480px) {
+            .container { padding: 15px 10px; }
+            table { font-size: 11px; }
+            th, td { padding: 6px 4px !important; }
+            input, select { padding: 6px 8px; font-size: 13px; }
+            button { font-size: 11px; padding: 5px 10px; }
+            h1 { font-size: 20px; }
+            h2 { font-size: 16px; }
+            .form-section { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <script src="menu-bar.js"></script>
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 12px; white-space: nowrap;">
+        <span id="userInfo" style="color: #374151; font-weight: 500; white-space: nowrap;"></span>
+        <a href="admin.html" id="adminLink" style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; display: none; white-space: nowrap;">🛡️ Admin</a>
+        <button onclick="logout()" style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; white-space: nowrap;">Logout</button>
+    </div>
+    <div class="container">
+        <a href="index.html" class="nav-link">← Back to Home</a>
+        
+        <h1>👥 Add Employee</h1>
+        
+        <div class="form-section">
+            <div id="successMessage" class="success-message"></div>
+            <div id="errorMessage" class="error-message"></div>
+            
+            <div class="form-group">
+                <label for="employeeName">Employee Name</label>
+                <input type="text" id="employeeName" placeholder="Enter employee name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="employeeEmail">Email</label>
+                <input type="email" id="employeeEmail" placeholder="Enter employee email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="employeeDepartment">Department</label>
+                <select id="employeeDepartment" onkeyup="filterSelect(this, event)" required style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+                    <option value="">Select Department</option>
+                </select>
+            </div>
+            
+            <button onclick="addEmployee()">Add Employee</button>
+        </div>
+        
+        <div style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="color: #1e3a8a; font-size: 20px; font-weight: 600; margin: 0;">Employee List</h2>
+                <button onclick="downloadEmployees()" style="background: #10b981; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; width: fit-content;">Download Master</button>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <input type="text" id="searchEmployee" placeholder="🔍 Search employees by name, email, or department..." onkeyup="filterEmployees()" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+            </div>
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th onclick="sortTable(0)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">ID <span id="sort-0">↕</span></th>
+                        <th onclick="sortTable(1)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Employee Name <span id="sort-1">↕</span></th>
+                        <th onclick="sortTable(2)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Email <span id="sort-2">↕</span></th>
+                        <th onclick="sortTable(3)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Department <span id="sort-3">↕</span></th>
+                        <th style="padding: 12px; text-align: center; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="employeesList">
+                    <tr><td colspan="5" style="padding: 20px; text-align: center; color: #6b7280;">Loading employees...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function loadDepartments() {
+            try {
+                const response = await fetch(`${API_BASE}/departments`);
+                const departments = await response.json();
+                
+                const select = document.getElementById('employeeDepartment');
+                select.innerHTML = '<option value="">Select Department</option>' +
+                    departments.map(dept => `<option value="${dept.name}">${dept.name}</option>`).join('');
+            } catch (error) {
+                console.error('Error loading departments:', error);
+            }
+        }
+        
+        function filterSelect(selectElement, event) {
+            const query = String.fromCharCode(event.keyCode).toLowerCase();
+            const options = selectElement.options;
+            
+            for (let i = 0; i < options.length; i++) {
+                const optionText = options[i].text.toLowerCase();
+                if (optionText.includes(query) && options[i].value !== '') {
+                    selectElement.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        async function addEmployee() {
+            const name = document.getElementById('employeeName').value.trim();
+            const email = document.getElementById('employeeEmail').value.trim();
+            const department = document.getElementById('employeeDepartment').value.trim();
+            
+            console.log('Attempting to add employee:', { name, email, department });
+            hideMessages();
+            
+            if (!name || !email || !department) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            try {
+                console.log('Sending request to:', `${API_BASE}/employees`);
+                const response = await fetch(`${API_BASE}/employees`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, department })
+                });
+                
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (response.ok) {
+                    document.getElementById('employeeName').value = '';
+                    document.getElementById('employeeEmail').value = '';
+                    document.getElementById('employeeDepartment').value = '';
+                    showSuccess(`Employee "${name}" added successfully!`);
+                    loadEmployees();
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError(result.error || 'Error adding employee. Please try again.');
+                }
+            } catch (error) {
+                console.error('Request error:', error);
+                showError('Connection error. Please check if the server is running.');
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        async function loadEmployees() {
+            try {
+                const response = await fetch(`${API_BASE}/employees`);
+                const employees = await response.json();
+                
+                if (employees.length === 0) {
+                    document.getElementById('employeesList').innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #6b7280;">No employees found</td></tr>';
+                    return;
+                }
+                
+                const html = employees.map(emp => `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 12px; color: #374151;">${emp.id}</td>
+                        <td style="padding: 12px;">
+                            <span id="name-${emp.id}" onclick="editName(${emp.id})" style="font-weight: 500; color: #1e3a8a; cursor: pointer;">${emp.name}</span>
+                            <input type="text" id="edit-name-${emp.id}" value="${emp.name}" onblur="saveNameEdit(${emp.id})" onkeypress="if(event.key==='Enter') saveNameEdit(${emp.id})" style="display: none; border: 1px solid #d1d5db; padding: 4px 8px; border-radius: 4px; font-size: 14px; width: 200px;">
+                        </td>
+                        <td style="padding: 12px;">
+                            <span id="email-${emp.id}" onclick="editEmail(${emp.id})" style="color: ${emp.email ? '#374151' : '#9ca3af'}; cursor: pointer;">${emp.email || 'Click to add email'}</span>
+                            <input type="email" id="edit-email-${emp.id}" value="${emp.email || ''}" onblur="saveEmailEdit(${emp.id})" onkeypress="if(event.key==='Enter') saveEmailEdit(${emp.id})" style="display: none; border: 1px solid #d1d5db; padding: 4px 8px; border-radius: 4px; font-size: 14px; width: 200px;">
+                        </td>
+                        <td style="padding: 12px;">
+                            <span id="dept-${emp.id}" onclick="editDept(${emp.id})" style="color: #374151; cursor: pointer;">${emp.department}</span>
+                            <select id="edit-dept-${emp.id}" onblur="saveDeptEdit(${emp.id})" onchange="saveDeptEdit(${emp.id})" style="display: none; border: 1px solid #d1d5db; padding: 4px 8px; border-radius: 4px; font-size: 14px; width: 150px; background: white;"></select>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button onclick="editName(${emp.id})" style="background: #10b981; color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; margin-right: 4px; font-weight: 500; width: fit-content;">Edit</button>
+                            <button onclick="sendEmail(${emp.id}, '${emp.name}', '${emp.email}')" style="background: #9ca3af; color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: not-allowed; margin-right: 4px; font-weight: 500; width: fit-content;" disabled>Email</button>
+                            <button onclick="deleteEmployee(${emp.id}, '${emp.name}')" style="background: #ef4444; color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; font-weight: 500; width: fit-content;">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('employeesList').innerHTML = html;
+            } catch (error) {
+                document.getElementById('employeesList').innerHTML = '<p style="color: #ef4444; text-align: center;">Error loading employees</p>';
+            }
+        }
+        
+        // Allow Enter key to submit form
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addEmployee();
+            }
+        });
+        
+        async function deleteEmployee(id, name) {
+            if (!confirm(`Are you sure you want to delete employee "${name}"? This will also delete all related workload data.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/employees/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showSuccess(`Employee "${name}" deleted successfully!`);
+                    loadEmployees();
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error deleting employee. Please try again.');
+                }
+            } catch (error) {
+                showError('Connection error. Please check if the server is running.');
+            }
+        }
+        
+        function editName(id) {
+            document.getElementById(`name-${id}`).style.display = 'none';
+            document.getElementById(`edit-name-${id}`).style.display = 'inline';
+            document.getElementById(`edit-name-${id}`).focus();
+        }
+        
+        function editEmail(id) {
+            document.getElementById(`email-${id}`).style.display = 'none';
+            document.getElementById(`edit-email-${id}`).style.display = 'inline';
+            document.getElementById(`edit-email-${id}`).focus();
+        }
+        
+        async function saveNameEdit(id) {
+            const newName = document.getElementById(`edit-name-${id}`).value.trim();
+            if (!newName) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/employees/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+                
+                if (response.ok) {
+                    document.getElementById(`name-${id}`).textContent = newName;
+                    document.getElementById(`name-${id}`).style.display = 'inline';
+                    document.getElementById(`edit-name-${id}`).style.display = 'none';
+                    showSuccess('Employee name updated successfully!');
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error updating employee name.');
+                }
+            } catch (error) {
+                showError('Connection error.');
+            }
+        }
+        
+        async function saveEmailEdit(id) {
+            const newEmail = document.getElementById(`edit-email-${id}`).value.trim();
+            
+            try {
+                const response = await fetch(`${API_BASE}/employees/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: newEmail })
+                });
+                
+                if (response.ok) {
+                    document.getElementById(`email-${id}`).textContent = newEmail || 'Click to add email';
+                    document.getElementById(`email-${id}`).style.color = newEmail ? '#374151' : '#9ca3af';
+                    document.getElementById(`email-${id}`).style.display = 'inline';
+                    document.getElementById(`edit-email-${id}`).style.display = 'none';
+                    showSuccess('Employee email updated successfully!');
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error updating employee email.');
+                }
+            } catch (error) {
+                showError('Connection error.');
+            }
+            document.getElementById(`email-${id}`).style.display = 'inline';
+            document.getElementById(`edit-email-${id}`).style.display = 'none';
+        }
+        
+        async function editDept(id) {
+            const select = document.getElementById(`edit-dept-${id}`);
+            const currentDept = document.getElementById(`dept-${id}`).textContent;
+            
+            try {
+                const response = await fetch(`${API_BASE}/departments`);
+                const departments = await response.json();
+                
+                select.innerHTML = departments.map(dept => 
+                    `<option value="${dept.name}" ${dept.name === currentDept ? 'selected' : ''}>${dept.name}</option>`
+                ).join('');
+                
+                document.getElementById(`dept-${id}`).style.display = 'none';
+                select.style.display = 'inline';
+                select.focus();
+            } catch (error) {
+                console.error('Error loading departments:', error);
+            }
+        }
+        
+        async function saveDeptEdit(id) {
+            const newDept = document.getElementById(`edit-dept-${id}`).value;
+            if (!newDept) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/employees/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ department: newDept })
+                });
+                
+                if (response.ok) {
+                    document.getElementById(`dept-${id}`).textContent = newDept;
+                    document.getElementById(`dept-${id}`).style.display = 'inline';
+                    document.getElementById(`edit-dept-${id}`).style.display = 'none';
+                    showSuccess('Employee department updated successfully!');
+                } else if (response.status === 403) {
+                    showError('You do not have authorization to edit');
+                } else {
+                    showError('Error updating employee department.');
+                }
+            } catch (error) {
+                showError('Connection error.');
+            }
+        }
+        
+        function downloadEmployees() {
+            let csvContent = 'ID,Employee Name,Email,Department\n';
+            
+            const employeesList = document.getElementById('employeesList');
+            const employeeElements = employeesList.querySelectorAll('[id^="name-"]');
+            
+            employeeElements.forEach(element => {
+                const id = element.id.split('-')[1];
+                const name = element.textContent;
+                const emailElement = document.getElementById(`email-${id}`);
+                const emailText = emailElement ? emailElement.textContent : '';
+                const email = emailText === 'Click to add email' ? '' : emailText;
+                const deptElement = document.getElementById(`dept-${id}`);
+                const department = deptElement ? deptElement.textContent : '';
+                csvContent += `"${id}","${name}","${email}","${department}"\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'employees.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        async function sendEmail(employeeId, employeeName, employeeEmail) {
+            if (!employeeEmail) {
+                showError('Employee email is required to send allocation report.');
+                return;
+            }
+            
+            if (!confirm(`Send resource allocation report to ${employeeName} (${employeeEmail})?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/send-allocation-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employeeId, employeeName, employeeEmail })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSuccess(`Resource allocation report sent to ${employeeName} successfully!`);
+                } else {
+                    showError(result.error || 'Failed to send email. Please try again.');
+                }
+            } catch (error) {
+                showError('Connection error. Please check if the server is running.');
+            }
+        }
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/user`);
+                const user = await response.json();
+                document.getElementById('userInfo').textContent = `Welcome, ${user.name}`;
+                
+                if (user.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+                
+                if (user.role === 'viewer') {
+                    disableEditingForViewer();
+                } else if (user.role === 'user') {
+                    disableEditingForUser();
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        function disableEditingForViewer() {
+            document.getElementById('employeeName').disabled = true;
+            document.getElementById('employeeEmail').disabled = true;
+            document.getElementById('employeeDepartment').disabled = true;
+            document.querySelector('button[onclick="addEmployee()"]').style.display = 'none';
+            document.querySelector('button[onclick="downloadEmployees()"]').style.display = 'none';
+            
+            const observer = new MutationObserver(() => {
+                const editButtons = document.querySelectorAll('button[onclick*="editName"], button[onclick*="sendEmail"], button[onclick*="deleteEmployee"]');
+                editButtons.forEach(btn => btn.style.display = 'none');
+            });
+            observer.observe(document.getElementById('employeesList'), { childList: true, subtree: true });
+        }
+        
+        function disableEditingForUser() {
+            document.getElementById('employeeName').disabled = true;
+            document.getElementById('employeeEmail').disabled = true;
+            document.getElementById('employeeDepartment').disabled = true;
+            document.querySelector('button[onclick="addEmployee()"]').style.display = 'none';
+            
+            const observer = new MutationObserver(() => {
+                const editButtons = document.querySelectorAll('button[onclick*="editName"], button[onclick*="sendEmail"], button[onclick*="deleteEmployee"]');
+                editButtons.forEach(btn => btn.style.display = 'none');
+            });
+            observer.observe(document.getElementById('employeesList'), { childList: true, subtree: true });
+        }
+        
+        function navigateWithTransition(url) {
+            document.body.style.opacity = '0';
+            document.body.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 300);
+        }
+        
+        // Logout function with smooth delay
+        function logout() {
+            const logoutBtn = event.target;
+            logoutBtn.textContent = '🔄 Logging out...';
+            logoutBtn.style.opacity = '0.7';
+            logoutBtn.disabled = true;
+            setTimeout(() => {
+                navigateWithTransition('/logout');
+            }, 800);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('a[href]:not([onclick])');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.href && !this.href.includes('#') && !this.target) {
+                        e.preventDefault();
+                        navigateWithTransition(this.href);
+                    }
+                });
+            });
+        });
+        
+        function filterEmployees() {
+            const searchTerm = document.getElementById('searchEmployee').value.toLowerCase();
+            const rows = document.querySelectorAll('#employeesList tr');
+            
+            rows.forEach(row => {
+                const nameCell = row.querySelector('[id^="name-"]');
+                const emailCell = row.querySelector('[id^="email-"]');
+                const deptCell = row.querySelector('[id^="dept-"]');
+                
+                if (nameCell && emailCell && deptCell) {
+                    const employeeName = nameCell.textContent.toLowerCase();
+                    const employeeEmail = emailCell.textContent.toLowerCase();
+                    const employeeDept = deptCell.textContent.toLowerCase();
+                    
+                    const matches = employeeName.includes(searchTerm) || 
+                                  employeeEmail.includes(searchTerm) || 
+                                  employeeDept.includes(searchTerm);
+                    
+                    row.style.display = matches ? '' : 'none';
+                }
+            });
+        }
+        
+        let sortDirection = {};
+        function sortTable(columnIndex) {
+            const tbody = document.getElementById('employeesList');
+            const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.querySelector('[id^="name-"]'));
+            
+            sortDirection[columnIndex] = !sortDirection[columnIndex];
+            const isAsc = sortDirection[columnIndex];
+            
+            // Update arrow indicators
+            document.querySelectorAll('[id^="sort-"]').forEach(span => span.textContent = '↕');
+            document.getElementById(`sort-${columnIndex}`).textContent = isAsc ? '↓' : '↑';
+            
+            rows.sort((a, b) => {
+                let aVal, bVal;
+                if (columnIndex === 0) {
+                    aVal = parseInt(a.cells[0].textContent);
+                    bVal = parseInt(b.cells[0].textContent);
+                } else if (columnIndex === 1) {
+                    aVal = a.querySelector('[id^="name-"]').textContent.toLowerCase();
+                    bVal = b.querySelector('[id^="name-"]').textContent.toLowerCase();
+                } else if (columnIndex === 2) {
+                    aVal = a.querySelector('[id^="email-"]').textContent.toLowerCase();
+                    bVal = b.querySelector('[id^="email-"]').textContent.toLowerCase();
+                } else {
+                    aVal = a.querySelector('[id^="dept-"]').textContent.toLowerCase();
+                    bVal = b.querySelector('[id^="dept-"]').textContent.toLowerCase();
+                }
+                return isAsc ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        // Load data on page load
+        loadDepartments();
+        loadEmployees();
+        loadUserInfo();
+    </script>
+</body>
+</html>

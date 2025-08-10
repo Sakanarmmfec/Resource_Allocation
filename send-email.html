@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Resource Allocation Emails</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 20px;
+            background: white;
+            min-height: 100vh;
+            font-size: 14px;
+            color: #334155;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+            margin: 0 auto;
+            max-width: 800px;
+            border: 1px solid #e2e8f0;
+        }
+        h1 {
+            color: #1e3a8a;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 32px 0;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        select:hover, input:hover {
+            border-color: #9ca3af;
+        }
+        .week-inputs {
+            display: flex;
+            gap: 15px;
+        }
+        .week-inputs > div {
+            flex: 1;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+            margin-right: 12px;
+        }
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .bulk-btn {
+            background: #10b981;
+        }
+        .bulk-btn:hover {
+            background: #059669;
+        }
+        .message {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 500;
+        }
+        .success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .error {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        .email-results {
+            margin-top: 24px;
+            display: none;
+        }
+        .result-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            font-size: 14px;
+        }
+        .result-success {
+            background-color: #f0f9ff;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+        .result-error {
+            background-color: #fef2f2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+        .employee-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            background: #f8fafc;
+        }
+        .employee-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .employee-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 24px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        .back-link:hover {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <script src="menu-bar.js"></script>
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 12px;">
+        <span id="userInfo" style="color: #374151; font-weight: 500;"></span>
+        <a href="admin.html" id="adminLink" style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; display: none;">🛡️ Admin</a>
+        <button onclick="logout()" style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px;">Logout</button>
+    </div>
+    <div class="container">
+
+        
+        <h1>Send Resource Allocation Emails</h1>
+        
+        <div class="form-group">
+            <label for="employeeSelect">Select Employee:</label>
+            <select id="employeeSelect">
+                <option value="">Loading employees...</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="dateType">Select Date Range Type:</label>
+            <select id="dateType" onchange="toggleDateInputs()">
+                <option value="week">Week Range</option>
+                <option value="month">Month Range</option>
+                <option value="year">Year Range</option>
+            </select>
+        </div>
+        
+        <div class="week-inputs" id="weekInputs">
+            <div class="form-group">
+                <label for="startWeek">Start Week:</label>
+                <input type="number" id="startWeek" min="1" max="52" value="1">
+            </div>
+            <div class="form-group">
+                <label for="endWeek">End Week:</label>
+                <input type="number" id="endWeek" min="1" max="52" value="52">
+            </div>
+        </div>
+        
+        <div class="week-inputs" id="monthInputs" style="display: none;">
+            <div class="form-group">
+                <label for="startMonth">Start Month:</label>
+                <select id="startMonth">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="endMonth">End Month:</label>
+                <select id="endMonth">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12" selected>December</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="week-inputs" id="yearInputs" style="display: none;">
+            <div class="form-group">
+                <label for="startYear">Start Year:</label>
+                <input type="number" id="startYear" min="2020" max="2030" value="2024">
+            </div>
+            <div class="form-group">
+                <label for="endYear">End Year:</label>
+                <input type="number" id="endYear" min="2020" max="2030" value="2024">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="cc">CC (optional):</label>
+            <input type="email" id="cc" placeholder="manager@company.com, supervisor@company.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="bcc">BCC (optional):</label>
+            <input type="email" id="bcc" placeholder="hr@company.com, admin@company.com">
+        </div>
+        
+        <button onclick="sendSingleEmail()" id="sendBtn">Send Email to Selected Employee</button>
+        
+        <div class="message" id="message"></div>
+        
+        <hr style="margin: 30px 0;">
+        
+        <h3>Bulk Email Sending</h3>
+        
+        <div class="form-group">
+            <label for="bulkDateType">Select Date Range Type:</label>
+            <select id="bulkDateType" onchange="toggleBulkDateInputs()">
+                <option value="week">Week Range</option>
+                <option value="month">Month Range</option>
+                <option value="year">Year Range</option>
+            </select>
+        </div>
+        
+        <div class="week-inputs" id="bulkWeekInputs">
+            <div class="form-group">
+                <label for="bulkStartWeek">Start Week:</label>
+                <input type="number" id="bulkStartWeek" min="1" max="52" value="1">
+            </div>
+            <div class="form-group">
+                <label for="bulkEndWeek">End Week:</label>
+                <input type="number" id="bulkEndWeek" min="1" max="52" value="52">
+            </div>
+        </div>
+        
+        <div class="week-inputs" id="bulkMonthInputs" style="display: none;">
+            <div class="form-group">
+                <label for="bulkStartMonth">Start Month:</label>
+                <select id="bulkStartMonth">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="bulkEndMonth">End Month:</label>
+                <select id="bulkEndMonth">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12" selected>December</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="week-inputs" id="bulkYearInputs" style="display: none;">
+            <div class="form-group">
+                <label for="bulkStartYear">Start Year:</label>
+                <input type="number" id="bulkStartYear" min="2020" max="2030" value="2024">
+            </div>
+            <div class="form-group">
+                <label for="bulkEndYear">End Year:</label>
+                <input type="number" id="bulkEndYear" min="2020" max="2030" value="2024">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="bulkCc">CC (optional):</label>
+            <input type="email" id="bulkCc" placeholder="manager@company.com, supervisor@company.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="bulkBcc">BCC (optional):</label>
+            <input type="email" id="bulkBcc" placeholder="hr@company.com, admin@company.com">
+        </div>
+        
+        <div class="form-group">
+            <label>Select Multiple Employees:</label>
+            <div class="employee-list" id="employeeList">
+                Loading employees...
+            </div>
+        </div>
+        
+        <button onclick="sendBulkEmails()" class="bulk-btn" id="bulkBtn">Send Emails to Selected Employees</button>
+        
+        <div class="loading" id="loading">
+            <p>Sending emails... Please wait.</p>
+        </div>
+        
+        <div class="email-results" id="emailResults">
+            <h3>Email Send Results:</h3>
+            <div id="resultsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let employees = [];
+
+        // Load employees and their allocation data
+        async function loadEmployees() {
+            try {
+                // Load employees
+                const employeeResponse = await fetch('http://localhost:5000/api/employees');
+                employees = await employeeResponse.json();
+                
+                // Load efforts data to show allocation status
+                const effortsResponse = await fetch('http://localhost:5000/api/efforts');
+                const efforts = await effortsResponse.json();
+                
+                // Load projects data
+                const projectsResponse = await fetch('http://localhost:5000/api/projects');
+                const projects = await projectsResponse.json();
+                
+                const select = document.getElementById('employeeSelect');
+                const list = document.getElementById('employeeList');
+                
+                select.innerHTML = '<option value="">Select an employee...</option>';
+                list.innerHTML = '';
+                
+                employees.forEach(emp => {
+                    // Count allocations for this employee
+                    const empEfforts = efforts.filter(e => e.employeeId === emp.id && e.effort > 0);
+                    const allocationCount = empEfforts.length;
+                    const totalEffort = empEfforts.reduce((sum, e) => sum + e.effort, 0);
+                    
+                    // Add to dropdown with allocation info
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = `${emp.name} (${emp.department}) - ${emp.email || 'No email'} [${allocationCount} allocations]`;
+                    select.appendChild(option);
+                    
+                    // Add to checkbox list with allocation details
+                    if (emp.email) {
+                        const div = document.createElement('div');
+                        div.className = 'employee-item';
+                        div.innerHTML = `
+                            <input type="checkbox" id="emp_${emp.id}" value="${emp.id}">
+                            <label for="emp_${emp.id}">
+                                <strong>${emp.name}</strong> (${emp.department})<br>
+                                <small style="color: #6b7280;">${emp.email} • ${allocationCount} allocations • ${totalEffort}% total effort</small>
+                            </label>
+                        `;
+                        list.appendChild(div);
+                    }
+                });
+                
+                const employeesWithEmail = employees.filter(emp => emp.email);
+                if (employeesWithEmail.length === 0) {
+                    list.innerHTML = '<p style="color: #e74c3c;">No employees with email addresses found.</p>';
+                } else {
+                    // Add summary info
+                    const summaryDiv = document.createElement('div');
+                    summaryDiv.style.cssText = 'margin-top: 16px; padding: 12px; background: #f1f5f9; border-radius: 6px; font-size: 13px; color: #475569;';
+                    summaryDiv.innerHTML = `
+                        <strong>Database Summary:</strong><br>
+                        • ${employees.length} total employees<br>
+                        • ${employeesWithEmail.length} employees with email addresses<br>
+                        • ${projects.length} total projects<br>
+                        • ${efforts.filter(e => e.effort > 0).length} active allocations
+                    `;
+                    list.appendChild(summaryDiv);
+                }
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showMessage('Error loading data from database: ' + error.message, 'error');
+            }
+        }
+
+        function toggleDateInputs() {
+            const dateType = document.getElementById('dateType').value;
+            const weekInputs = document.getElementById('weekInputs');
+            const monthInputs = document.getElementById('monthInputs');
+            const yearInputs = document.getElementById('yearInputs');
+            
+            weekInputs.style.display = dateType === 'week' ? 'flex' : 'none';
+            monthInputs.style.display = dateType === 'month' ? 'flex' : 'none';
+            yearInputs.style.display = dateType === 'year' ? 'flex' : 'none';
+        }
+        
+        function toggleBulkDateInputs() {
+            const dateType = document.getElementById('bulkDateType').value;
+            const weekInputs = document.getElementById('bulkWeekInputs');
+            const monthInputs = document.getElementById('bulkMonthInputs');
+            const yearInputs = document.getElementById('bulkYearInputs');
+            
+            weekInputs.style.display = dateType === 'week' ? 'flex' : 'none';
+            monthInputs.style.display = dateType === 'month' ? 'flex' : 'none';
+            yearInputs.style.display = dateType === 'year' ? 'flex' : 'none';
+        }
+        
+        function toggleBulkDateInputs() {
+            const dateType = document.getElementById('bulkDateType').value;
+            const weekInputs = document.getElementById('bulkWeekInputs');
+            const monthInputs = document.getElementById('bulkMonthInputs');
+            const yearInputs = document.getElementById('bulkYearInputs');
+            
+            weekInputs.style.display = dateType === 'week' ? 'flex' : 'none';
+            monthInputs.style.display = dateType === 'month' ? 'flex' : 'none';
+            yearInputs.style.display = dateType === 'year' ? 'flex' : 'none';
+        }
+        
+        function getDateRange() {
+            const dateType = document.getElementById('dateType').value;
+            
+            if (dateType === 'week') {
+                const startWeek = parseInt(document.getElementById('startWeek').value);
+                const endWeek = parseInt(document.getElementById('endWeek').value);
+                
+                if (startWeek > endWeek) {
+                    throw new Error('Start week cannot be greater than end week');
+                }
+                
+                return { type: 'week', startWeek, endWeek };
+            } else if (dateType === 'month') {
+                const startMonth = parseInt(document.getElementById('startMonth').value);
+                const endMonth = parseInt(document.getElementById('endMonth').value);
+                
+                if (startMonth > endMonth) {
+                    throw new Error('Start month cannot be greater than end month');
+                }
+                
+                return { type: 'month', startMonth, endMonth };
+            } else if (dateType === 'year') {
+                const startYear = parseInt(document.getElementById('startYear').value);
+                const endYear = parseInt(document.getElementById('endYear').value);
+                
+                if (startYear > endYear) {
+                    throw new Error('Start year cannot be greater than end year');
+                }
+                
+                return { type: 'year', startYear, endYear };
+            }
+        }
+        
+        function getBulkDateRange() {
+            const dateType = document.getElementById('bulkDateType').value;
+            
+            if (dateType === 'week') {
+                const startWeek = parseInt(document.getElementById('bulkStartWeek').value);
+                const endWeek = parseInt(document.getElementById('bulkEndWeek').value);
+                
+                if (startWeek > endWeek) {
+                    throw new Error('Start week cannot be greater than end week');
+                }
+                
+                return { type: 'week', startWeek, endWeek };
+            } else if (dateType === 'month') {
+                const startMonth = parseInt(document.getElementById('bulkStartMonth').value);
+                const endMonth = parseInt(document.getElementById('bulkEndMonth').value);
+                
+                if (startMonth > endMonth) {
+                    throw new Error('Start month cannot be greater than end month');
+                }
+                
+                return { type: 'month', startMonth, endMonth };
+            } else if (dateType === 'year') {
+                const startYear = parseInt(document.getElementById('bulkStartYear').value);
+                const endYear = parseInt(document.getElementById('bulkEndYear').value);
+                
+                if (startYear > endYear) {
+                    throw new Error('Start year cannot be greater than end year');
+                }
+                
+                return { type: 'year', startYear, endYear };
+            }
+        }
+
+        async function sendSingleEmail() {
+            const employeeId = document.getElementById('employeeSelect').value;
+            
+            if (!employeeId) {
+                showMessage('Please select an employee', 'error');
+                return;
+            }
+            
+            let dateRange;
+            try {
+                dateRange = getDateRange();
+            } catch (error) {
+                showMessage(error.message, 'error');
+                return;
+            }
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            
+            try {
+                const cc = document.getElementById('cc').value.trim();
+                const bcc = document.getElementById('bcc').value.trim();
+                
+                const requestBody = {
+                    employeeId: parseInt(employeeId),
+                    ...dateRange
+                };
+                
+                if (cc) requestBody.cc = cc;
+                if (bcc) requestBody.bcc = bcc;
+                
+                const response = await fetch('http://localhost:5000/api/send-allocation-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    // Hide results for single email
+                    document.getElementById('emailResults').style.display = 'none';
+                } else {
+                    showMessage(result.error || 'Failed to send email', 'error');
+                    // Hide results for single email
+                    document.getElementById('emailResults').style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error sending email:', error);
+                showMessage('Error sending email: ' + error.message, 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send Email to Selected Employee';
+            }
+        }
+
+        async function sendBulkEmails() {
+            const checkboxes = document.querySelectorAll('#employeeList input[type="checkbox"]:checked');
+            const employeeIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            
+            if (employeeIds.length === 0) {
+                showMessage('Please select at least one employee', 'error');
+                return;
+            }
+            
+            let dateRange;
+            try {
+                dateRange = getBulkDateRange();
+            } catch (error) {
+                showMessage(error.message, 'error');
+                return;
+            }
+            
+            const bulkBtn = document.getElementById('bulkBtn');
+            const loading = document.getElementById('loading');
+            
+            bulkBtn.disabled = true;
+            bulkBtn.textContent = 'Sending...';
+            loading.style.display = 'block';
+            
+            try {
+                const bulkCc = document.getElementById('bulkCc').value.trim();
+                const bulkBcc = document.getElementById('bulkBcc').value.trim();
+                
+                const requestBody = {
+                    employeeIds,
+                    ...dateRange
+                };
+                
+                if (bulkCc) requestBody.cc = bulkCc;
+                if (bulkBcc) requestBody.bcc = bulkBcc;
+                
+                const response = await fetch('http://localhost:5000/api/send-bulk-allocation-emails', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    showEmailResults(result.results);
+                    // Uncheck all checkboxes
+                    checkboxes.forEach(cb => cb.checked = false);
+                } else {
+                    showMessage(result.error || 'Failed to send bulk emails', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error sending bulk emails:', error);
+                showMessage('Error sending bulk emails: ' + error.message, 'error');
+            } finally {
+                bulkBtn.disabled = false;
+                bulkBtn.textContent = 'Send Emails to Selected Employees';
+                loading.style.display = 'none';
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showEmailResults(results) {
+            const resultsDiv = document.getElementById('emailResults');
+            const resultsList = document.getElementById('resultsList');
+            
+            if (!results || results.length === 0) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            resultsList.innerHTML = '';
+            
+            results.forEach(result => {
+                const employee = employees.find(emp => emp.id === result.employeeId);
+                const employeeName = employee ? employee.name : `Employee ID: ${result.employeeId}`;
+                
+                const resultItem = document.createElement('div');
+                resultItem.className = `result-item ${result.success ? 'result-success' : 'result-error'}`;
+                resultItem.innerHTML = `
+                    <strong>${employeeName}</strong>: ${result.message}
+                `;
+                resultsList.appendChild(resultItem);
+            });
+            
+            resultsDiv.style.display = 'block';
+        }
+
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/user');
+                const user = await response.json();
+                document.getElementById('userInfo').textContent = `Welcome, ${user.name}`;
+                
+                if (user.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        // Logout function with smooth delay
+        function logout() {
+            const logoutBtn = event.target;
+            logoutBtn.textContent = '🔄 Logging out...';
+            logoutBtn.style.opacity = '0.7';
+            logoutBtn.disabled = true;
+            setTimeout(() => {
+                window.location.href = '/logout';
+            }, 800);
+        }
+        
+        // Load employees when page loads
+        window.addEventListener('load', () => {
+            // Ensure buttons are enabled
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('bulkBtn').disabled = false;
+            loadEmployees();
+            loadUserInfo();
+        });
+    </script>
+</body>
+</html>

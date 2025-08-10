@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Mapping - Resource Allocation</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 80px 20px 20px 20px;
+            background: white;
+            min-height: 100vh;
+            font-size: 14px;
+            color: #334155;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+            margin: 0 auto;
+            max-width: 1000px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.2s forwards;
+        }
+        
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .nav-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #1e3a8a;
+        }
+        
+        h1 {
+            color: #1e3a8a;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+        
+        .mapping-form {
+            margin-bottom: 30px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .form-group select {
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.4s forwards;
+        }
+        
+        .section h3 {
+            margin-top: 0;
+            color: #1e3a8a;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .list-item:hover {
+            background: #f1f5f9;
+        }
+        
+        .assign-btn, .remove-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        
+        .assign-btn {
+            background: #10b981;
+            color: white;
+        }
+        
+        .assign-btn:hover {
+            background: #059669;
+        }
+        
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+        
+        .assignments-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.6s forwards;
+        }
+        
+        .assignment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .assignment-info {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .employee-info {
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        
+        .project-info {
+            color: #6b7280;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <script src="menu-bar.js"></script>
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 12px;">
+        <span id="userInfo" style="color: #374151; font-weight: 500;"></span>
+        <a href="admin.html" id="adminLink" style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; display: none;">🛡️ Admin</a>
+        <button onclick="logout()" style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px;">Logout</button>
+    </div>
+    <div class="container">
+        <a href="index.html" class="nav-link">← Back to Home</a>
+        
+        <h1>🔗 Project Mapping</h1>
+        
+        <div class="mapping-form">
+            <div class="section">
+                <h3>➕ Create New Assignment</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>👤 Select Employee</label>
+                        <select id="employeeSelect" onkeyup="filterSelect(this, event)" style="padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white; width: 100%;">
+                            <option value="">Choose an employee...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📋 Select Project</label>
+                        <select id="projectSelect" onkeyup="filterSelect(this, event)" style="padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white; width: 100%;">
+                            <option value="">Choose a project...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button onclick="createAssignment()" class="assign-btn">Create Assignment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="assignments-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3>🔗 Current Assignments</h3>
+                <button onclick="downloadAssignments()" style="background: #10b981; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; width: fit-content;">Download Master</button>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <input type="text" id="searchAssignment" placeholder="🔍 Search assignments by employee, department, or project..." onkeyup="filterAssignments()" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; background: white;">
+            </div>
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th onclick="sortTable(0)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Employee <span id="sort-0">↕</span></th>
+                        <th onclick="sortTable(1)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Department <span id="sort-1">↕</span></th>
+                        <th onclick="sortTable(2)" style="padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151; cursor: pointer;">Project <span id="sort-2">↕</span></th>
+                        <th style="padding: 12px; text-align: center; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #374151;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="assignmentsList">
+                    <tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280;">Loading assignments...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let employees = [];
+        let projects = [];
+        let assignments = [];
+
+        async function loadData() {
+            try {
+                console.log('Loading data from API...');
+                const [empRes, projRes, assignRes] = await Promise.all([
+                    fetch(`${API_BASE}/employees`),
+                    fetch(`${API_BASE}/projects`),
+                    fetch(`${API_BASE}/project-assignments`)
+                ]);
+                
+                employees = await empRes.json();
+                projects = await projRes.json();
+                assignments = await assignRes.json();
+                
+                console.log('Loaded employees:', employees);
+                console.log('Loaded projects:', projects);
+                console.log('Loaded assignments:', assignments);
+                
+                populateSelects();
+                renderAssignments();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function populateSelects() {
+            const employeeSelect = document.getElementById('employeeSelect');
+            const projectSelect = document.getElementById('projectSelect');
+            
+            employeeSelect.innerHTML = '<option value="">Choose an employee...</option>' +
+                employees.map(emp => `<option value="${emp.id}">${emp.name} (${emp.department})</option>`).join('');
+            
+            projectSelect.innerHTML = '<option value="">Choose a project...</option>' +
+                projects.map(proj => `<option value="${proj.id}">${proj.name}</option>`).join('');
+        }
+        
+        function filterSelect(selectElement, event) {
+            const query = String.fromCharCode(event.keyCode).toLowerCase();
+            const options = selectElement.options;
+            
+            for (let i = 0; i < options.length; i++) {
+                const optionText = options[i].text.toLowerCase();
+                if (optionText.includes(query) && options[i].value !== '') {
+                    selectElement.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        function renderAssignments() {
+            const container = document.getElementById('assignmentsList');
+            if (assignments.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: #6b7280; font-style: italic;">No assignments yet</td></tr>';
+                return;
+            }
+            
+            container.innerHTML = assignments.map(assignment => {
+                const employee = employees.find(e => e.id === assignment.employeeId);
+                const project = projects.find(p => p.id === assignment.projectId);
+                
+                return `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 12px; font-weight: 500; color: #1e3a8a;">${employee?.name || 'Unknown'}</td>
+                        <td style="padding: 12px; color: #374151;">${employee?.department || 'Unknown'}</td>
+                        <td style="padding: 12px; color: #374151;">${project?.name || 'Unknown'}</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button onclick="removeAssignment(${assignment.employeeId}, ${assignment.projectId}, '${employee?.name}', '${project?.name}')" style="background: #ef4444; color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; font-weight: 500; width: fit-content;">Remove</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getAvailableProjects(employeeId) {
+            const assignedProjectIds = assignments
+                .filter(a => a.employeeId === employeeId)
+                .map(a => a.projectId);
+            return projects.filter(p => !assignedProjectIds.includes(p.id));
+        }
+
+        function getAvailableEmployees(projectId) {
+            const assignedEmployeeIds = assignments
+                .filter(a => a.projectId === projectId)
+                .map(a => a.employeeId);
+            return employees.filter(e => !assignedEmployeeIds.includes(e.id));
+        }
+
+        function getAssignedEmployees(projectId) {
+            return assignments.filter(a => a.projectId === projectId);
+        }
+
+        async function createAssignment() {
+            const employeeId = document.getElementById('employeeSelect').value;
+            const projectId = document.getElementById('projectSelect').value;
+            
+            if (!employeeId || !projectId) {
+                alert('Please select both an employee and a project');
+                return;
+            }
+            
+            // Check if assignment already exists
+            const existingAssignment = assignments.find(a => 
+                a.employeeId == employeeId && a.projectId == projectId
+            );
+            
+            if (existingAssignment) {
+                alert('This assignment already exists');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/project-assignments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        employeeId: parseInt(employeeId), 
+                        projectId: parseInt(projectId) 
+                    })
+                });
+                
+                if (response.ok) {
+                    // Reset form
+                    document.getElementById('employeeSelect').value = '';
+                    document.getElementById('projectSelect').value = '';
+                    loadData();
+                } else if (response.status === 403) {
+                    alert('You do not have authorization to edit');
+                } else {
+                    alert('Error creating assignment');
+                }
+            } catch (error) {
+                console.error('Error creating assignment:', error);
+                alert('Error creating assignment');
+            }
+        }
+
+        async function removeAssignment(employeeId, projectId, employeeName, projectName) {
+            if (!confirm(`Are you sure you want to remove assignment "${employeeName} → ${projectName}"? This will also delete all related workload data.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/project-assignments`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employeeId, projectId })
+                });
+                
+                if (response.ok) {
+                    loadData();
+                } else if (response.status === 403) {
+                    alert('You do not have authorization to edit');
+                } else {
+                    alert('Error removing assignment');
+                }
+            } catch (error) {
+                console.error('Error removing assignment:', error);
+            }
+        }
+
+        function downloadAssignments() {
+            let csvContent = 'Employee ID,Employee Name,Department,Project ID,Project Name\n';
+            
+            assignments.forEach(assignment => {
+                const employee = employees.find(e => e.id === assignment.employeeId);
+                const project = projects.find(p => p.id === assignment.projectId);
+                
+                if (employee && project) {
+                    csvContent += `"${employee.id}","${employee.name}","${employee.department}","${project.id}","${project.name}"\n`;
+                }
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'project_assignments.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/user');
+                const user = await response.json();
+                document.getElementById('userInfo').textContent = `Welcome, ${user.name}`;
+                
+                if (user.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                }
+                
+                if (user.role === 'viewer') {
+                    disableEditingForViewer();
+                } else if (user.role === 'user') {
+                    disableEditingForUser();
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        function disableEditingForViewer() {
+            document.getElementById('employeeSelect').disabled = true;
+            document.getElementById('projectSelect').disabled = true;
+            document.querySelector('button[onclick="createAssignment()"]').style.display = 'none';
+            document.querySelector('button[onclick="downloadAssignments()"]').style.display = 'none';
+            
+            const observer = new MutationObserver(() => {
+                const removeButtons = document.querySelectorAll('button[onclick*="removeAssignment"]');
+                removeButtons.forEach(btn => btn.style.display = 'none');
+            });
+            observer.observe(document.getElementById('assignmentsList'), { childList: true, subtree: true });
+        }
+        
+        function disableEditingForUser() {
+            document.getElementById('employeeSelect').disabled = true;
+            document.getElementById('projectSelect').disabled = true;
+            document.querySelector('button[onclick="createAssignment()"]').style.display = 'none';
+            
+            const observer = new MutationObserver(() => {
+                const removeButtons = document.querySelectorAll('button[onclick*="removeAssignment"]');
+                removeButtons.forEach(btn => btn.style.display = 'none');
+            });
+            observer.observe(document.getElementById('assignmentsList'), { childList: true, subtree: true });
+        }
+        
+        function navigateWithTransition(url) {
+            document.body.style.opacity = '0';
+            document.body.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 300);
+        }
+        
+        // Logout function with smooth delay
+        function logout() {
+            const logoutBtn = event.target;
+            logoutBtn.textContent = '🔄 Logging out...';
+            logoutBtn.style.opacity = '0.7';
+            logoutBtn.disabled = true;
+            setTimeout(() => {
+                navigateWithTransition('/logout');
+            }, 800);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('a[href]:not([onclick])');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.href && !this.href.includes('#') && !this.target) {
+                        e.preventDefault();
+                        navigateWithTransition(this.href);
+                    }
+                });
+            });
+        });
+        
+        function filterAssignments() {
+            const searchTerm = document.getElementById('searchAssignment').value.toLowerCase();
+            const rows = document.querySelectorAll('#assignmentsList tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 3) {
+                    const employeeName = cells[0].textContent.toLowerCase();
+                    const department = cells[1].textContent.toLowerCase();
+                    const projectName = cells[2].textContent.toLowerCase();
+                    
+                    const matches = employeeName.includes(searchTerm) || 
+                                  department.includes(searchTerm) || 
+                                  projectName.includes(searchTerm);
+                    
+                    row.style.display = matches ? '' : 'none';
+                }
+            });
+        }
+        
+        let sortDirection = {};
+        function sortTable(columnIndex) {
+            const tbody = document.getElementById('assignmentsList');
+            const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.querySelectorAll('td').length >= 3);
+            
+            sortDirection[columnIndex] = !sortDirection[columnIndex];
+            const isAsc = sortDirection[columnIndex];
+            
+            // Update arrow indicators
+            document.querySelectorAll('[id^="sort-"]').forEach(span => span.textContent = '↕');
+            document.getElementById(`sort-${columnIndex}`).textContent = isAsc ? '↓' : '↑';
+            
+            rows.sort((a, b) => {
+                const aVal = a.cells[columnIndex].textContent.toLowerCase();
+                const bVal = b.cells[columnIndex].textContent.toLowerCase();
+                return isAsc ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        // Load data on page load
+        loadData();
+        loadUserInfo();
+    </script>
+</body>
+</html>

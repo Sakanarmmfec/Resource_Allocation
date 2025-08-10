@@ -1,0 +1,3111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Allocation System</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+
+        body { 
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 80px 20px 20px 20px;
+            background: white;
+            min-height: 100vh;
+            font-size: 16px;
+            color: #334155;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+            margin: 0 auto 0 60px;
+            max-width: 1400px;
+            border: 1px solid #e2e8f0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.2s forwards;
+        }
+        
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+
+        
+        h1 {
+            color: #1e3a8a;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 32px 0;
+            text-align: center;
+        }
+        
+        .filters-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.4s forwards;
+        }
+        
+        .filters-header {
+            background: #f8fafc;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .filters-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin: 0;
+        }
+        
+        .filters-content {
+            padding: 24px;
+        }
+        
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        select, input { 
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+            width: 100%;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        select:hover, input:hover {
+            border-color: #9ca3af;
+        }
+        
+        .refresh-btn { 
+            background: #3b82f6;
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        }
+        
+        .refresh-btn:hover { 
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .allocation-table { 
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%; 
+            margin-top: 16px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+        
+        .allocation-table th, .allocation-table td { 
+            border: 1px solid #e9ecef; 
+            padding: 8px; 
+            text-align: center;
+        }
+        
+        .allocation-table th { 
+            background: #1e3a8a;
+            color: white;
+            font-weight: 600; 
+            position: sticky; 
+            top: 0;
+            font-size: 12px;
+        }
+        
+        .employee-name { 
+            background: #f8fafc;
+            font-weight: 600; 
+            text-align: left; 
+            width: 200px;
+            color: #1e3a8a;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .project-row { 
+            background: #fff; 
+            text-align: left; 
+            padding-left: 25px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .project-row:hover {
+            background: #f8f9fa;
+        }
+        
+        .effort-input { 
+            width: 75px; 
+            border: none; 
+            text-align: center; 
+            background: transparent;
+            font-weight: 500;
+            color: #495057;
+            position: relative;
+        }
+        
+        .effort-input:focus { 
+            background: #dbeafe;
+            outline: 1px solid #3b82f6;
+            border-radius: 4px;
+        }
+        
+        .effort-cell {
+            position: relative;
+            padding: 0;
+        }
+        
+        .effort-cell.selected {
+            background: #dbeafe !important;
+            border: 2px solid #3b82f6;
+        }
+        
+        .effort-cell.fill-range {
+            background: rgba(59, 130, 246, 0.2) !important;
+        }
+        
+        .fill-handle {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 6px;
+            height: 6px;
+            background: #3b82f6;
+            cursor: crosshair;
+            border: 1px solid white;
+            display: none;
+        }
+        
+        .effort-cell.selected .fill-handle {
+            display: block;
+        }
+        
+        .auto-fill-tooltip {
+            position: absolute;
+            background: #1f2937;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+            pointer-events: none;
+            display: none;
+        }
+        
+        .context-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+            min-width: 150px;
+        }
+        
+        .context-menu-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .context-menu-item:hover {
+            background: #f3f4f6;
+        }
+        
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .week-header { 
+            min-width: 60px;
+            font-size: 12px;
+        }
+        
+        .nav-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .nav-button {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            margin-right: 12px;
+        }
+        
+        .nav-button:hover {
+            background: #059669;
+        }
+        
+        .nav-button.project-btn {
+            background: #ef4444;
+        }
+        
+        .nav-button.project-btn:hover {
+            background: #dc2626;
+        
+        }
+        
+        .nav-button.project-btn:hover {
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        }
+        
+
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideInUp 0.6s ease-out 0.6s forwards;
+        }
+        
+        .year-view-container {
+            overflow-x: auto;
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        @media (max-width: 480px) {
+            .container { padding: 10px; }
+            .filters-header { flex-direction: column; gap: 10px; }
+            .refresh-btn { padding: 8px 12px; font-size: 12px; }
+            .allocation-table th, .allocation-table td { padding: 4px 2px; }
+            .employee-name { font-size: 11px; }
+            .week-header { font-size: 9px; min-width: 40px; }
+            .effort-input { width: 50px; font-size: 12px; }
+            .chatbot-window { width: 95%; height: 60vh; }
+            h1 { font-size: 20px; }
+        }
+        
+        .year-view-table {
+            min-width: 4000px;
+            width: auto;
+        }
+        
+        .year-view-table .week-header {
+            min-width: 70px;
+            white-space: nowrap;
+        }
+        
+        .show-colors tbody tr {
+            background: #f8fafc !important;
+        }
+        
+        .show-colors tbody tr:has(.employee-name) {
+            background: #e2e8f0 !important;
+        }
+        
+        .show-colors tbody tr:has(.employee-name) td {
+            background: #e2e8f0 !important;
+        }
+        
+        .allocation-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.08);
+            transform: scale(1.001);
+            transition: all 0.2s ease;
+        }
+        
+        /* Employee rows darker than project rows in hide color mode */
+        .hide-colors tbody tr {
+            background: #f8fafc !important;
+        }
+        
+        .hide-colors tbody tr:nth-child(even) {
+            background: #f8fafc !important;
+        }
+        
+        .hide-colors tbody tr:has(.employee-name) {
+            background: #e2e8f0 !important;
+        }
+        
+        .hide-colors tbody tr:has(.employee-name) td {
+            background: #e2e8f0 !important;
+        }
+        
+        .fill-preview {
+            background: rgba(16, 185, 129, 0.3) !important;
+            border: 1px dashed #10b981;
+        }
+        
+        kbd {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+        
+        /* Chat Bubble Styles */
+        .chat-bubble {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .chatbot-window {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .chatbot-header {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chatbot-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .chatbot-clear-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .chatbot-clear-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .chatbot-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .chatbot-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        
+        .message {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-content {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #374151;
+        }
+        
+        .message.user .message-content {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        
+        .message.bot .message-avatar {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .message.user .message-avatar {
+            background: #10b981;
+            color: white;
+        }
+        
+        .chatbot-input-area {
+            padding: 16px;
+            border-top: 1px solid #e2e8f0;
+            background: white;
+        }
+        
+        .chatbot-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .chatbot-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        
+        .chatbot-input:focus {
+            border-color: #3b82f6;
+        }
+        
+        .chatbot-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .chatbot-send:hover {
+            background: #2563eb;
+        }
+        
+        .chatbot-send:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 14px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            max-width: 80px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #9ca3af;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        
+        /* Confirmation Dialog */
+        .confirmation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .confirmation-dialog {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .confirmation-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .confirmation-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #fef3c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .confirmation-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+        
+        .confirmation-content {
+            color: #6b7280;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        
+        .confirmation-details {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        
+        .confirmation-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .confirmation-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .confirmation-btn.cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .confirmation-btn.cancel:hover {
+            background: #e5e7eb;
+        }
+        
+        .confirmation-btn.confirm {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .confirmation-btn.confirm:hover {
+            background: #2563eb;
+        }
+        
+        .effort-cell:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .effort-input:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .fill-handle:hover {
+            background: #1e40af;
+            transform: scale(1.2);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 15px; max-width: 100%; }
+            .filters-content { padding: 16px; }
+            .filter-row { grid-template-columns: 1fr; gap: 15px; }
+            .allocation-table { font-size: 12px; }
+            .allocation-table th, .allocation-table td { padding: 6px 4px; }
+            .employee-name { width: auto; font-size: 12px; }
+            .week-header { min-width: 50px; font-size: 10px; }
+            .effort-input { width: 60px; }
+            .chatbot-window { width: 90%; height: 70vh; bottom: 10px; right: 5%; }
+            .table-container { overflow-x: auto; }
+            h1 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <script src="menu-bar.js"></script>
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 12px; z-index: 999;">
+        <span id="userInfo" style="color: #374151; font-weight: 500;"></span>
+        <a id="adminLink" href="/admin.html" style="background: #8b5cf6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; display: none;">🛡️ Admin</a>
+        <a id="workloadLink" href="/workload-summary.html" style="background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">📈 Workload</a>
+        <button onclick="logout()" style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px;">Logout</button>
+    </div>
+
+    <div class="container">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 40px;">
+            <img src="logo.png" alt="Logo" style="height: 80px; width: auto;">
+            <div style="display: flex; flex-direction: column; text-align: center;">
+                <h1 style="margin: 0; color: #1e3a8a; font-size: 32px; font-weight: 700;">MFEC ResourceX</h1>
+                <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 16px; font-weight: 400;">Resource Allocation System</p>
+            </div>
+        </div>
+        
+
+    
+
+    
+    <div class="filters-container">
+        <div class="filters-header">
+            <h3 class="filters-title">📊 Filters & Settings</h3>
+        </div>
+        
+        <div class="filters-content">
+            <div style="background: #f0f9ff; padding: 12px; border-radius: 6px; margin-bottom: 16px; border-left: 4px solid #3b82f6;">
+                <strong>💡 Fill Handle Tips:</strong>
+                <ul style="margin: 8px 0 0 20px; font-size: 13px;">
+                    <li>Click on any effort cell to select it and see the fill handle (blue square)</li>
+                    <li>Drag the fill handle to auto-fill adjacent cells</li>
+                    <li>Right-click on cells for fill options: Fill Series, Fill Down, Fill Right, Auto Pattern</li>
+                    <li>🎨 Cell Colors: Green = Paid Project, Yellow = Non Project</li>
+                    <li>📊 Total Colors: <span style="color: #dc2626; font-weight: bold;">Red > 5 days</span>, <span style="color: #000000; font-weight: bold;">Black = 5 days</span>, <span style="color: #10b981; font-weight: bold;">Green < 5 days</span></li>
+                </ul>
+            </div>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>👤 Employee</label>
+                    <select id="employeeFilter" onchange="filterByEmployee()">
+                        <option value="">All Employees</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>🏢 Department</label>
+                    <select id="departmentFilter" onchange="filterByDepartment()">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>📋 Project</label>
+                    <select id="projectFilter" onchange="filterByProject()">
+                        <option value="">All Projects</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>📅 View Type</label>
+                    <select id="viewType" onchange="changeView()">
+                        <option value="week">Weekly View</option>
+                        <option value="month">Monthly View (Display only)</option>
+
+                    </select>
+                </div>
+                
+                <div class="filter-group" id="weekSelector">
+                    <label>📆 Start Week</label>
+                    <input type="week" id="startWeek" onchange="updateWeekRange()">
+                </div>
+                
+                <div class="filter-group" id="monthSelector" style="display: none;">
+                    <label>📅 Start Month</label>
+                    <input type="month" id="startMonth" onchange="updateMonthRange()">
+                </div>
+                
+                <div class="filter-group" id="yearSelector" style="display: none;">
+                    <label>📅 Select Year</label>
+                    <select id="yearSelect" onchange="updateYearRange()">
+                        <option value="2024">2024</option>
+                        <option value="2025" selected>2025</option>
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group" id="weekCount">
+                    <label>📊 Duration</label>
+                    <select id="weekCountSelect" onchange="updateWeekRange()">
+                        <option value="4">4 weeks</option>
+                        <option value="8">8 weeks</option>
+                        <option value="12" selected>12 weeks</option>
+                        <option value="16">16 weeks</option>
+                        <option value="52">52 weeks</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+        <div style="margin-bottom: 16px; text-align: right; display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+            <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+            <button class="refresh-btn" onclick="setCurrentWeek()" style="background: #10b981;">📅 Current Week</button>
+            <button class="refresh-btn" onclick="toggleProjectColors()" style="background: #8b5cf6;" id="colorToggle">🎨 Show Cell Colors</button>
+            <button class="refresh-btn" onclick="clearAllData()" style="background: #ef4444;">🗑️ Clear All Data in Current View</button>
+            <button class="refresh-btn" onclick="downloadAllocationExcel()" style="background: #10b981;">📊 Download Excel</button>
+        </div>
+        
+        <div class="table-container">
+            <div id="allocationGrid"></div>
+        </div>
+        
+    </div>
+
+    <!-- Chat Bubble -->
+    <div class="chat-bubble" onclick="toggleChatbot()">
+        <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+        </svg>
+    </div>
+        
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <div class="chatbot-title">🤖 Resource Assistant</div>
+                <div class="chatbot-header-actions">
+                    <button class="chatbot-clear-btn" onclick="clearChatContext()" title="Clear chat history">
+                        🗑️ Clear
+                    </button>
+                    <button class="chatbot-close" onclick="toggleChatbot()">×</button>
+                </div>
+            </div>
+            
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        Hi! I'm your Resource Allocation Assistant. I can help you with:
+                        <br>• Understanding the allocation system
+                        <br>• Explaining features and shortcuts
+                        <br>• Troubleshooting issues
+                        <br>• Best practices for resource planning
+                        <br>• Manage allocation
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatbot-input-area">
+                <div class="chatbot-input-container">
+                    <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Ask me anything..." onkeypress="handleChatbotKeypress(event)">
+                    <button class="chatbot-send" id="chatbotSend" onclick="sendChatbotMessage()">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Dialog Overlay -->
+    <div class="confirmation-overlay" id="confirmationOverlay"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let employees = [];
+        let projects = [];
+        let efforts = [];
+        let assignments = [];
+        let currentView = 'week';
+        let currentDepartment = '';
+        let currentEmployee = '';
+        let currentProject = '';
+        let startWeekDate = new Date();
+        let weekCount = 12;
+        let showProjectColors = false;
+        
+        // Fill handle and auto-fill variables
+        let selectedCell = null;
+        let isDragging = false;
+        let fillStartCell = null;
+        let fillEndCell = null;
+        let dragStartX = 0;
+        let dragStartY = 0;
+
+
+
+
+
+        async function loadData() {
+            try {
+                const [empRes, projRes, effRes, assignRes] = await Promise.all([
+                    fetch(`${API_BASE}/employees`),
+                    fetch(`${API_BASE}/projects`),
+                    fetch(`${API_BASE}/efforts`),
+                    fetch(`${API_BASE}/project-assignments`)
+                ]);
+                
+                employees = await empRes.json();
+                projects = await projRes.json();
+                efforts = await effRes.json();
+                assignments = await assignRes.json();
+                
+                updateDepartmentFilter();
+                updateEmployeeFilter();
+                updateProjectFilter();
+                renderAllocationGrid();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function updateDepartmentFilter() {
+            const filter = document.getElementById('departmentFilter');
+            const departments = [...new Set(employees.map(emp => emp.department))];
+            
+            filter.innerHTML = '<option value="">All Departments</option>' +
+                departments.map(dept => `<option value="${dept}">${dept}</option>`).join('');
+        }
+
+        function updateEmployeeFilter() {
+            const filter = document.getElementById('employeeFilter');
+            const sortedEmployees = employees.sort((a, b) => a.name.localeCompare(b.name));
+            
+            filter.innerHTML = '<option value="">All Employees</option>' +
+                sortedEmployees.map(emp => `<option value="${emp.id}">${emp.name} (${emp.department})</option>`).join('');
+        }
+
+        function updateProjectFilter() {
+            const filter = document.getElementById('projectFilter');
+            const sortedProjects = projects.sort((a, b) => a.name.localeCompare(b.name));
+            
+            filter.innerHTML = '<option value="">All Projects</option>' +
+                sortedProjects.map(proj => `<option value="${proj.id}">${proj.name}</option>`).join('');
+        }
+
+        function filterByDepartment() {
+            currentDepartment = document.getElementById('departmentFilter').value;
+            currentEmployee = ''; // Reset employee filter when department changes
+            document.getElementById('employeeFilter').value = '';
+            renderAllocationGrid();
+        }
+
+        function filterByEmployee() {
+            currentEmployee = document.getElementById('employeeFilter').value;
+            if (currentEmployee) {
+                // If specific employee selected, clear department filter
+                currentDepartment = '';
+                document.getElementById('departmentFilter').value = '';
+            }
+            renderAllocationGrid();
+        }
+
+        function filterByProject() {
+            currentProject = document.getElementById('projectFilter').value;
+            renderAllocationGrid();
+        }
+
+        function changeView() {
+            currentView = document.getElementById('viewType').value;
+            const weekSelector = document.getElementById('weekSelector');
+            const monthSelector = document.getElementById('monthSelector');
+            const yearSelector = document.getElementById('yearSelector');
+            const weekCountDiv = document.getElementById('weekCount');
+            
+            if (currentView === 'week') {
+                weekSelector.style.display = 'block';
+                monthSelector.style.display = 'none';
+                yearSelector.style.display = 'none';
+                weekCountDiv.style.display = 'block';
+            } else if (currentView === 'month') {
+                weekSelector.style.display = 'none';
+                monthSelector.style.display = 'block';
+                yearSelector.style.display = 'none';
+                weekCountDiv.style.display = 'none';
+                initializeMonthSelector();
+            } else if (currentView === 'all') {
+                weekSelector.style.display = 'none';
+                monthSelector.style.display = 'none';
+                yearSelector.style.display = 'block';
+                weekCountDiv.style.display = 'none';
+            }
+            renderAllocationGrid();
+        }
+        
+        function updateMonthRange() {
+            renderAllocationGrid();
+        }
+        
+        function initializeMonthSelector() {
+            const startMonthInput = document.getElementById('startMonth');
+            if (!startMonthInput.value) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                startMonthInput.value = `${year}-${month}`;
+            }
+        }
+        
+        function updateYearRange() {
+            renderAllocationGrid();
+        }
+        
+        function setCurrentWeek() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const weekNum = getWeekNumber(now);
+            const currentWeek = `${year}-W${String(weekNum).padStart(2, '0')}`;
+            
+            document.getElementById('startWeek').value = currentWeek;
+            document.getElementById('viewType').value = 'week';
+            
+            startWeekDate = now;
+            currentView = 'week';
+            
+            changeView();
+            updateWeekLabel();
+            renderAllocationGrid();
+        }
+        
+        function toggleProjectColors() {
+            showProjectColors = !showProjectColors;
+            const button = document.getElementById('colorToggle');
+            button.textContent = showProjectColors ? '🎨 Hide Cell Colors' : '🎨 Show Cell Colors';
+            renderAllocationGrid();
+        }
+        
+        function downloadAllocationExcel() {
+            const assignedEmployeeIds = [...new Set(assignments.map(a => a.employeeId))];
+            let filteredEmployees = employees.filter(emp => assignedEmployeeIds.includes(emp.id));
+            
+            if (currentEmployee) {
+                filteredEmployees = filteredEmployees.filter(emp => emp.id == currentEmployee);
+            } else if (currentDepartment) {
+                filteredEmployees = filteredEmployees.filter(emp => emp.department === currentDepartment);
+            }
+            
+            const weeks = generateTimeColumns();
+            
+            let csvContent = 'Employee/Project';
+            weeks.forEach(week => {
+                csvContent += `,${week.label}`;
+            });
+            csvContent += ',Total\n';
+            
+            filteredEmployees.forEach(employee => {
+                let employeeProjects = getAssignedProjects(employee.id);
+                const filteredProjects = currentProject ? 
+                    employeeProjects.filter(proj => proj.id == currentProject) : employeeProjects;
+                
+                // Employee summary row
+                csvContent += `"${employee.name} (${employee.department})"`;
+                weeks.forEach(week => {
+                    let weekTotal = 0;
+                    filteredProjects.forEach(project => {
+                        const effort = getEffort(employee.id, project.id, week.value);
+                        weekTotal += effort;
+                    });
+                    // Round to 1 decimal place
+                    weekTotal = Math.round(weekTotal * 10) / 10;
+                    csvContent += `,${weekTotal}d`;
+                });
+                
+                let employeeTotal = 0;
+                filteredProjects.forEach(project => {
+                    weeks.forEach(week => {
+                        const effort = getEffort(employee.id, project.id, week.value);
+                        employeeTotal += effort;
+                    });
+                });
+                // Round to 1 decimal place
+                employeeTotal = Math.round(employeeTotal * 10) / 10;
+                csvContent += `,${employeeTotal}d\n`;
+                
+                // Project detail rows
+                filteredProjects.forEach(project => {
+                    csvContent += `"  ${project.name}"`;
+                    weeks.forEach(week => {
+                        const effort = getEffort(employee.id, project.id, week.value);
+                        csvContent += `,${effort}`;
+                    });
+                    
+                    let projectTotal = 0;
+                    weeks.forEach(week => {
+                        const effort = getEffort(employee.id, project.id, week.value);
+                        projectTotal += effort;
+                    });
+                    // Round to 1 decimal place
+                    projectTotal = Math.round(projectTotal * 10) / 10;
+                    csvContent += `,${projectTotal}d\n`;
+                });
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'resource_allocation.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function updateWeekRange() {
+            const startWeekInput = document.getElementById('startWeek').value;
+            if (startWeekInput) {
+                const [year, week] = startWeekInput.split('-W');
+                startWeekDate = getDateFromWeekString(parseInt(year), parseInt(week));
+                localStorage.setItem('selectedStartWeek', startWeekInput);
+                updateWeekLabel();
+            }
+            weekCount = parseInt(document.getElementById('weekCountSelect').value);
+            renderAllocationGrid();
+        }
+        
+        function getDateFromWeekString(year, week) {
+            const firstDayOfYear = new Date(year, 0, 1);
+            const daysToFirstMonday = (8 - firstDayOfYear.getDay()) % 7;
+            const firstMonday = new Date(year, 0, 1 + daysToFirstMonday);
+            return new Date(firstMonday.getTime() + (week - 1) * 7 * 24 * 60 * 60 * 1000);
+        }
+
+        function getAssignedProjects(employeeId) {
+            const assignedProjectIds = assignments
+                .filter(a => a.employeeId === employeeId)
+                .map(a => a.projectId);
+            return projects.filter(p => assignedProjectIds.includes(p.id));
+        }
+
+        function renderAllocationGrid() {
+            const assignedEmployeeIds = [...new Set(assignments.map(a => a.employeeId))];
+            let filteredEmployees = employees.filter(emp => assignedEmployeeIds.includes(emp.id));
+            
+            if (currentEmployee) {
+                filteredEmployees = filteredEmployees.filter(emp => emp.id == currentEmployee);
+            } else if (currentDepartment) {
+                filteredEmployees = filteredEmployees.filter(emp => emp.department === currentDepartment);
+            }
+            
+            const weeks = generateTimeColumns();
+            let tableClass = currentView === 'all' ? 'allocation-table year-view-table' : 'allocation-table';
+            tableClass += showProjectColors ? ' show-colors' : ' hide-colors';
+            
+            // Generate hierarchical header
+            const headerStructure = generateHierarchicalHeader(weeks);
+            
+            let html = `<table class="${tableClass}">
+                <thead>
+                    ${headerStructure}
+                </thead><tbody>`;
+
+            if (filteredEmployees.length === 0) {
+                html += `<tr><td colspan="${weeks.length + 2}" style="text-align: center; padding: 20px; color: #6c757d;">No assigned employees found. <a href="project-mapping.html" style="color: #667eea;">Configure project mapping</a> to get started.</td></tr>`;
+            } else {
+                filteredEmployees.forEach(employee => {
+                    let employeeProjects = getAssignedProjects(employee.id);
+                    const filteredProjects = currentProject ? 
+                        employeeProjects.filter(proj => proj.id == currentProject) : employeeProjects;
+                    
+                    html += `<tr><td class="employee-name">${employee.name} (${employee.department})</td>`;
+                    
+                    // Calculate and show total for each week
+                    weeks.forEach(week => {
+                        let weekTotal = 0;
+                        filteredProjects.forEach(project => {
+                            const effort = getEffort(employee.id, project.id, week.value);
+                            weekTotal += effort;
+                        });
+                        // Round to 1 decimal place to avoid floating point issues
+                        weekTotal = Math.round(weekTotal * 10) / 10;
+                        const color = weekTotal > 5 ? '#dc2626' : weekTotal === 5 ? '#000000' : '#10b981';
+                        html += `<td style="font-weight: 700; color: ${color};">${weekTotal}d</td>`;
+                    });
+                    
+                    // Calculate overall total
+                    let employeeTotal = 0;
+                    filteredProjects.forEach(project => {
+                        weeks.forEach(week => {
+                            const effort = getEffort(employee.id, project.id, week.value);
+                            employeeTotal += effort;
+                        });
+                    });
+                    // Round to 1 decimal place to avoid floating point issues
+                    employeeTotal = Math.round(employeeTotal * 10) / 10;
+                    html += `<td style="font-weight: 700; color: #374151;">${employeeTotal}d</td>`;
+                    html += `</tr>`;
+                    
+                    if (filteredProjects.length === 0) {
+                        html += `<tr><td colspan="${weeks.length + 2}" style="text-align: center; padding: 10px; color: #6c757d; font-style: italic;">No assigned projects. <a href="project-mapping.html" style="color: #667eea;">Configure mapping</a> for this employee.</td></tr>`;
+                    } else {
+                        filteredProjects.forEach(project => {
+                            html += `<tr><td class="project-row">└ ${project.name}</td>`;
+                            weeks.forEach((week, weekIndex) => {
+                                const effort = getEffort(employee.id, project.id, week.value);
+                                const cellId = `cell-${employee.id}-${project.id}-${week.value}`;
+                                
+                                if (currentView === 'month') {
+                                    // Monthly view - show aggregated total as read-only
+                                    html += `<td class="effort-cell" style="background: #f8fafc;">
+                                        <div style="text-align: center; padding: 8px; font-weight: 600; color: #374151;">${effort}d</div>
+                                    </td>`;
+                                } else {
+                                    // Weekly view - editable inputs
+                                    const projectType = project.type || 'project';
+                                    const cellColor = showProjectColors && effort > 0 ? 
+                                        (projectType === 'presale' ? '#fef3c7' : '#dcfce7') : '';
+                                    
+                                    html += `<td class="effort-cell" id="${cellId}" 
+                                        data-employee="${employee.id}" 
+                                        data-project="${project.id}" 
+                                        data-week="${week.value}"
+                                        data-week-index="${weekIndex}"
+                                        style="background-color: ${cellColor};">
+                                        <input type="number" class="effort-input" value="${effort}" 
+                                            oninput="validateAndSave(this, ${employee.id}, ${project.id}, ${week.value})"
+                                            onblur="saveEffort(${employee.id}, ${project.id}, ${week.value}, this.value)"
+                                            onfocus="selectCell(this.parentElement)"
+                                            oncontextmenu="showContextMenu(event, this.parentElement)"
+                                            min="0" max="5" step="0.5">
+                                        <div class="fill-handle" onmousedown="startFillDrag(event, this.parentElement)"></div>
+                                    </td>`;
+                                }
+                            });
+                            
+                            // Project total
+                            let projectTotal = 0;
+                            weeks.forEach(week => {
+                                const effort = getEffort(employee.id, project.id, week.value);
+                                projectTotal += effort;
+                            });
+                            // Round to 1 decimal place to avoid floating point issues
+                            projectTotal = Math.round(projectTotal * 10) / 10;
+                            html += `<td style="font-weight: 700; color: #374151;">${projectTotal}d</td>`;
+                            html += `</tr>`;
+                        });
+                    }
+                });
+            }
+            
+            html += `</tbody></table>`;
+            html += `<div class="auto-fill-tooltip" id="autoFillTooltip"></div>`;
+            html += `<div class="context-menu" id="contextMenu">
+                <div class="context-menu-item" onclick="fillSeries()">📈 Fill Series (+1, +2, +3...)</div>
+                <div class="context-menu-item" onclick="fillDown()">⬇️ Fill Down (Copy to column)</div>
+                <div class="context-menu-item" onclick="fillRight()">➡️ Fill Right (Copy to row)</div>
+                <div class="context-menu-item" onclick="clearCells()">🗑️ Clear Cell</div>
+                <div class="context-menu-item" onclick="autoFillPattern()">🔄 Pattern Fill (8,6,4...)</div>
+                <div class="context-menu-item" onclick="fillWeeklyPattern()">📅 Weekly Pattern (5 days)</div>
+            </div>`;
+            
+            const gridContainer = document.getElementById('allocationGrid');
+            if (currentView === 'all') {
+                gridContainer.innerHTML = `<div class="year-view-container">${html}</div>`;
+            } else {
+                gridContainer.innerHTML = html;
+            }
+            
+            // Add event listeners for fill functionality
+            setupFillHandleEvents();
+        }
+
+        function generateTimeColumns() {
+            const columns = [];
+            
+            if (currentView === 'week') {
+                const baseDate = startWeekDate.getTime() ? startWeekDate : new Date();
+                for (let i = 0; i < weekCount; i++) {
+                    const date = new Date(baseDate);
+                    date.setDate(date.getDate() + (i * 7));
+                    const weekNum = getWeekNumber(date);
+                    const weekOfMonth = Math.ceil(date.getDate() / 7);
+                    const weekLabel = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/W${String(weekOfMonth).padStart(2, '0')}`;
+                    columns.push({
+                        label: weekLabel,
+                        value: weekNum + (date.getFullYear() * 100),
+                        year: date.getFullYear(),
+                        quarter: Math.ceil((date.getMonth() + 1) / 3),
+                        month: date.getMonth() + 1,
+                        weekOfMonth: weekOfMonth,
+                        date: new Date(date)
+                    });
+                }
+            } else if (currentView === 'month') {
+                const startMonthInput = document.getElementById('startMonth');
+                let startDate;
+                
+                if (startMonthInput && startMonthInput.value) {
+                    const [year, month] = startMonthInput.value.split('-');
+                    startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+                } else {
+                    startDate = new Date();
+                }
+                
+                for (let i = 0; i < 12; i++) {
+                    const date = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+                    const monthLabel = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    columns.push({
+                        label: monthLabel,
+                        value: `${date.getFullYear()}-${date.getMonth() + 1}`,
+                        year: date.getFullYear(),
+                        quarter: Math.ceil((date.getMonth() + 1) / 3),
+                        month: date.getMonth() + 1,
+                        date: new Date(date)
+                    });
+                }
+            } else if (currentView === 'all') {
+                const selectedYear = parseInt(document.getElementById('yearSelect').value);
+                
+                // Generate all weeks for the selected year
+                for (let week = 1; week <= 52; week++) {
+                    const weekDate = getDateFromWeekString(selectedYear, week);
+                    const weekOfMonth = Math.ceil(weekDate.getDate() / 7);
+                    const weekLabel = `${selectedYear}/${String(weekDate.getMonth() + 1).padStart(2, '0')}/W${String(weekOfMonth).padStart(2, '0')}`;
+                    columns.push({
+                        label: weekLabel,
+                        value: week + (selectedYear * 100),
+                        year: selectedYear,
+                        quarter: Math.ceil((weekDate.getMonth() + 1) / 3),
+                        month: weekDate.getMonth() + 1,
+                        weekOfMonth: weekOfMonth,
+                        date: new Date(weekDate)
+                    });
+                }
+            }
+            
+            return columns;
+        }
+        
+        function generateHierarchicalHeader(weeks) {
+            if (weeks.length === 0) return '';
+            
+            // Group weeks by year, quarter, month
+            const yearGroups = {};
+            weeks.forEach((week, index) => {
+                const year = week.year;
+                const quarter = week.quarter;
+                const month = week.month;
+                
+                if (!yearGroups[year]) yearGroups[year] = {};
+                if (!yearGroups[year][quarter]) yearGroups[year][quarter] = {};
+                if (!yearGroups[year][quarter][month]) yearGroups[year][quarter][month] = [];
+                
+                yearGroups[year][quarter][month].push({ ...week, index });
+            });
+            
+            let html = '';
+            
+            // Year row
+            html += '<tr>';
+            html += '<th rowspan="4" style="width: 200px; vertical-align: middle; background: rgb(80,70,228); color: white;">Employee / Project</th>';
+            Object.keys(yearGroups).forEach(year => {
+                const yearWeeks = Object.values(yearGroups[year]).flatMap(q => Object.values(q).flatMap(m => m));
+                html += `<th colspan="${yearWeeks.length}" style="background: rgb(80,70,228); color: white; font-weight: 700; text-align: center;">${year}</th>`;
+            });
+            html += '<th rowspan="4" style="background: rgb(80,70,228); color: white; font-weight: 700; vertical-align: middle;">Total</th>';
+            html += '</tr>';
+            
+            // Quarter row
+            html += '<tr>';
+            Object.keys(yearGroups).forEach(year => {
+                Object.keys(yearGroups[year]).forEach(quarter => {
+                    const quarterWeeks = Object.values(yearGroups[year][quarter]).flatMap(m => m);
+                    html += `<th colspan="${quarterWeeks.length}" style="background: rgb(80,70,228); color: white; font-weight: 600; text-align: center;">Q${quarter}</th>`;
+                });
+            });
+            html += '</tr>';
+            
+            // Month row
+            html += '<tr>';
+            Object.keys(yearGroups).forEach(year => {
+                Object.keys(yearGroups[year]).forEach(quarter => {
+                    Object.keys(yearGroups[year][quarter]).forEach(month => {
+                        const monthWeeks = yearGroups[year][quarter][month];
+                        const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        html += `<th colspan="${monthWeeks.length}" style="background: rgb(80,70,228); color: white; font-weight: 600; text-align: center;">${monthNames[month]}</th>`;
+                    });
+                });
+            });
+            html += '</tr>';
+            
+            // Week row
+            html += '<tr>';
+            weeks.forEach(week => {
+                html += `<th class="week-header" style="background: rgb(80,70,228); color: white; font-weight: 500; text-align: center;">W${week.weekOfMonth || 1}</th>`;
+            });
+            html += '</tr>';
+            
+            return html;
+        }
+
+        function getWeekNumber(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+        }
+
+        function getEffort(employeeId, projectId, timeValue) {
+            if (currentView === 'week' || currentView === 'all') {
+                const effort = efforts.find(e => e.employeeId === employeeId && e.projectId === projectId && e.week === timeValue);
+                return effort ? parseFloat(effort.effort) || 0 : 0;
+            } else if (currentView === 'month') {
+                // Monthly view - aggregate all weeks in the month
+                const [year, month] = timeValue.split('-').map(Number);
+                let totalEffort = 0;
+                
+                // Find all efforts for this employee/project combination
+                const relevantEfforts = efforts.filter(e => 
+                    e.employeeId === employeeId && e.projectId === projectId
+                );
+                
+                relevantEfforts.forEach(e => {
+                    // Handle both formats: simple week numbers and year+week format
+                    let weekYear, weekNum;
+                    if (e.week > 1000) {
+                        // Year+week format (e.g., 202517)
+                        weekYear = Math.floor(e.week / 100);
+                        weekNum = e.week % 100;
+                    } else {
+                        // Simple week format (1-52)
+                        weekYear = year; // Use the target year
+                        weekNum = e.week;
+                    }
+                    
+                    // Check if this week falls within the target month
+                    if (weekYear === year) {
+                        const weekDate = getDateFromWeekString(weekYear, weekNum);
+                        if (weekDate.getMonth() + 1 === month) {
+                            totalEffort += parseFloat(e.effort) || 0;
+                        }
+                    }
+                });
+                
+                return totalEffort;
+            }
+            return 0;
+        }
+        
+        function getDateFromWeek(year, week) {
+            // Create a more accurate week-to-date conversion
+            const firstDayOfYear = new Date(year, 0, 1);
+            const firstMonday = new Date(firstDayOfYear);
+            
+            // Find the first Monday of the year
+            const dayOfWeek = firstDayOfYear.getDay();
+            const daysToFirstMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+            firstMonday.setDate(firstDayOfYear.getDate() + daysToFirstMonday);
+            
+            // Calculate the target week date
+            const targetDate = new Date(firstMonday);
+            targetDate.setDate(firstMonday.getDate() + (week - 1) * 7);
+            
+            return targetDate;
+        }
+
+        let autoSaveTimeout = null;
+        
+        function validateAndSave(input, employeeId, projectId, week) {
+            let value = parseFloat(input.value) || 0;
+            
+            // Round to 1 decimal place to avoid floating point issues
+            value = Math.round(value * 10) / 10;
+            
+            if (value > 5) {
+                input.value = 5; // Reset to maximum allowed
+                input.style.borderColor = '#ef4444'; // Red border for error
+                setTimeout(() => input.style.borderColor = '', 1000);
+                return;
+            }
+            
+            // Update the input value to the rounded value
+            input.value = value;
+            autoSave(employeeId, projectId, week, value);
+        }
+        
+        function autoSave(employeeId, projectId, week, effortValue) {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                saveEffort(employeeId, projectId, week, effortValue);
+            }, 300);
+        }
+        
+        async function saveEffort(employeeId, projectId, week, effortValue) {
+            let effort = parseFloat(effortValue) || 0;
+            
+            // Round to 1 decimal place to avoid floating point issues
+            effort = Math.round(effort * 10) / 10;
+            
+            // Validation: do not save if value exceeds 5 days
+            if (effort > 5) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/efforts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employeeId: parseInt(employeeId),
+                        projectId: parseInt(projectId),
+                        week: parseInt(week),
+                        effort: effort
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        // Update local data
+                        const existingIndex = efforts.findIndex(e => 
+                            e.employeeId == employeeId && e.projectId == projectId && e.week == week
+                        );
+                        
+                        if (existingIndex >= 0) {
+                            efforts[existingIndex].effort = effort;
+                        } else {
+                            efforts.push({
+                                employeeId: parseInt(employeeId),
+                                projectId: parseInt(projectId),
+                                week: parseInt(week),
+                                effort: effort
+                            });
+                        }
+                        
+                        // Show saved message
+                        showSavedMessage();
+                        
+                        // Refresh the grid to show updated totals
+                        renderAllocationGrid();
+                    }
+                } else if (response.status === 403) {
+                    // Show authorization error for viewer role
+                    showErrorMessage('You do not have authorization to edit');
+                }
+            } catch (error) {
+                console.error('Error saving effort:', error);
+            }
+        }
+
+        // Initialize week selector with current week
+        function initializeWeekSelector() {
+            const startWeekInput = document.getElementById('startWeek');
+            const now = new Date();
+            const year = now.getFullYear();
+            const currentWeek = `${year}-W${String(getWeekNumber(now)).padStart(2, '0')}`;
+            startWeekInput.value = currentWeek;
+            startWeekDate = now;
+            updateWeekLabel();
+        }
+        
+        function updateWeekLabel() {
+            const startWeekInput = document.getElementById('startWeek');
+            if (startWeekInput.value) {
+                const [year, week] = startWeekInput.value.split('-W');
+                const date = getDateFromWeekString(parseInt(year), parseInt(week));
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const label = document.querySelector('label[for="startWeek"]') || document.querySelector('#weekSelector label');
+                if (label) {
+                    label.textContent = `📆 Start Week (${year}/${month}/W${week})`;
+                }
+            }
+        }
+
+        // Fill handle and auto-fill functions
+        function selectCell(cell) {
+            // Clear previous selection
+            document.querySelectorAll('.effort-cell.selected').forEach(c => c.classList.remove('selected'));
+            
+            // Select current cell
+            cell.classList.add('selected');
+            selectedCell = cell;
+        }
+        
+        function startFillDrag(event, cell) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            isDragging = true;
+            fillStartCell = cell;
+            dragStartX = event.clientX;
+            dragStartY = event.clientY;
+            
+            document.addEventListener('mousemove', handleFillDrag);
+            document.addEventListener('mouseup', endFillDrag);
+            
+            // Show tooltip
+            showAutoFillTooltip(event.clientX, event.clientY, 'Drag to fill');
+        }
+        
+        function handleFillDrag(event) {
+            if (!isDragging) return;
+            
+            const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY);
+            const cell = elementUnderMouse?.closest('.effort-cell');
+            
+            if (cell && cell !== fillStartCell) {
+                fillEndCell = cell;
+                highlightFillRange(fillStartCell, fillEndCell);
+                
+                const range = getFillRange(fillStartCell, fillEndCell);
+                const startValue = parseInt(fillStartCell.querySelector('.effort-input').value) || 0;
+                const direction = getFillDirection(fillStartCell, fillEndCell);
+                
+                let tooltipText = `Fill ${range.length} cells`;
+                if (direction === 'horizontal') {
+                    tooltipText += ` → (${startValue})`;
+                } else if (direction === 'vertical') {
+                    tooltipText += ` ↓ (${startValue})`;
+                }
+                
+                showAutoFillTooltip(event.clientX + 10, event.clientY - 10, tooltipText);
+            }
+        }
+        
+        function getFillDirection(startCell, endCell) {
+            const startEmployee = parseInt(startCell.dataset.employee);
+            const startProject = parseInt(startCell.dataset.project);
+            const endEmployee = parseInt(endCell.dataset.employee);
+            const endProject = parseInt(endCell.dataset.project);
+            
+            if (startEmployee === endEmployee && startProject === endProject) {
+                return 'horizontal';
+            } else if (startProject === endProject) {
+                return 'vertical';
+            }
+            return 'diagonal';
+        }
+        
+        function endFillDrag(event) {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            document.removeEventListener('mousemove', handleFillDrag);
+            document.removeEventListener('mouseup', endFillDrag);
+            
+            hideAutoFillTooltip();
+            
+            if (fillStartCell && fillEndCell) {
+                performAutoFill(fillStartCell, fillEndCell);
+            }
+            
+            // Clear fill range highlighting
+            document.querySelectorAll('.effort-cell.fill-range').forEach(c => c.classList.remove('fill-range'));
+            fillStartCell = null;
+            fillEndCell = null;
+        }
+        
+        function highlightFillRange(startCell, endCell) {
+            // Clear previous highlighting
+            document.querySelectorAll('.effort-cell.fill-range').forEach(c => c.classList.remove('fill-range'));
+            
+            const range = getFillRange(startCell, endCell);
+            range.forEach(cell => cell.classList.add('fill-range'));
+        }
+        
+        function getFillRange(startCell, endCell) {
+            const startEmployee = parseInt(startCell.dataset.employee);
+            const startProject = parseInt(startCell.dataset.project);
+            const startWeekIndex = parseInt(startCell.dataset.weekIndex);
+            const startWeek = parseInt(startCell.dataset.week);
+            
+            const endEmployee = parseInt(endCell.dataset.employee);
+            const endProject = parseInt(endCell.dataset.project);
+            const endWeekIndex = parseInt(endCell.dataset.weekIndex);
+            const endWeek = parseInt(endCell.dataset.week);
+            
+            const range = [];
+            
+            // Horizontal fill (same employee and project, different weeks)
+            if (startEmployee === endEmployee && startProject === endProject && startWeekIndex !== endWeekIndex) {
+                const minWeek = Math.min(startWeekIndex, endWeekIndex);
+                const maxWeek = Math.max(startWeekIndex, endWeekIndex);
+                
+                for (let weekIndex = minWeek; weekIndex <= maxWeek; weekIndex++) {
+                    const cell = document.querySelector(`[data-employee="${startEmployee}"][data-project="${startProject}"][data-week-index="${weekIndex}"]`);
+                    if (cell) range.push(cell);
+                }
+            }
+            // Vertical fill (same week, different employees/projects)
+            else if (startWeek === endWeek) {
+                const allCells = document.querySelectorAll(`[data-week="${startWeek}"]`);
+                const startIndex = Array.from(allCells).indexOf(startCell);
+                const endIndex = Array.from(allCells).indexOf(endCell);
+                
+                if (startIndex >= 0 && endIndex >= 0) {
+                    const minIndex = Math.min(startIndex, endIndex);
+                    const maxIndex = Math.max(startIndex, endIndex);
+                    
+                    for (let i = minIndex; i <= maxIndex; i++) {
+                        range.push(allCells[i]);
+                    }
+                }
+            }
+            
+            return range;
+        }
+        
+        function performAutoFill(startCell, endCell) {
+            const range = getFillRange(startCell, endCell);
+            if (range.length <= 1) return;
+            
+            const startValue = parseFloat(startCell.querySelector('.effort-input').value) || 0;
+            
+            // Simple fill: copy start value to all cells in range
+            range.forEach((cell, index) => {
+                const input = cell.querySelector('.effort-input');
+                input.value = startValue;
+                
+                const employeeId = parseInt(cell.dataset.employee);
+                const projectId = parseInt(cell.dataset.project);
+                const week = parseInt(cell.dataset.week);
+                saveEffort(employeeId, projectId, week, startValue);
+            });
+        }
+        
+        function detectPattern(values) {
+            if (values.length < 2) {
+                return { type: 'same', value: values[0] || 0 };
+            }
+            
+            // Check for arithmetic progression
+            if (values.length >= 2) {
+                const diff = values[1] - values[0];
+                let isArithmetic = true;
+                
+                for (let i = 2; i < values.length; i++) {
+                    if (values[i] - values[i-1] !== diff) {
+                        isArithmetic = false;
+                        break;
+                    }
+                }
+                
+                if (isArithmetic && diff !== 0) {
+                    return { type: 'increment', step: diff };
+                }
+            }
+            
+            // Check for repeating pattern
+            if (values.length >= 3) {
+                // Check if it's a repeating sequence
+                const uniqueValues = [...new Set(values)];
+                if (uniqueValues.length > 1 && uniqueValues.length < values.length) {
+                    return { type: 'series', values: values };
+                }
+            }
+            
+            // Default to same value
+            return { type: 'same', value: values[0] };
+        }
+        
+        function showAutoFillTooltip(x, y, text) {
+            const tooltip = document.getElementById('autoFillTooltip');
+            tooltip.textContent = text;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+            tooltip.style.display = 'block';
+        }
+        
+        function hideAutoFillTooltip() {
+            document.getElementById('autoFillTooltip').style.display = 'none';
+        }
+        
+        function showContextMenu(event, cell) {
+            event.preventDefault();
+            selectCell(cell);
+            
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+            contextMenu.style.display = 'block';
+            
+            // Hide context menu when clicking elsewhere
+            setTimeout(() => {
+                document.addEventListener('click', hideContextMenu, { once: true });
+            }, 10);
+        }
+        
+        function hideContextMenu() {
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+        
+        function fillSeries() {
+            if (!selectedCell) return;
+            
+            const currentValue = parseFloat(selectedCell.querySelector('.effort-input').value) || 0;
+            const employeeId = parseInt(selectedCell.dataset.employee);
+            const projectId = parseInt(selectedCell.dataset.project);
+            const startWeekIndex = parseInt(selectedCell.dataset.weekIndex);
+            
+            // Fill next 4 cells with incrementing values
+            for (let i = 1; i <= 4; i++) {
+                const nextCell = document.querySelector(`[data-employee="${employeeId}"][data-project="${projectId}"][data-week-index="${startWeekIndex + i}"]`);
+                if (nextCell) {
+                    const input = nextCell.querySelector('.effort-input');
+                    const newValue = Math.min(40, currentValue + i);
+                    input.value = newValue;
+                    saveEffort(employeeId, projectId, parseInt(nextCell.dataset.week), newValue);
+                }
+            }
+            
+            hideContextMenu();
+        }
+        
+        function fillDown() {
+            if (!selectedCell) return;
+            
+            const currentValue = selectedCell.querySelector('.effort-input').value;
+            const employeeId = parseInt(selectedCell.dataset.employee);
+            const projectId = parseInt(selectedCell.dataset.project);
+            const weekIndex = parseInt(selectedCell.dataset.weekIndex);
+            
+            // Find all cells in the same week column (same weekIndex) for the same employee
+            document.querySelectorAll(`[data-employee="${employeeId}"][data-week-index="${weekIndex}"]`).forEach(cell => {
+                if (cell !== selectedCell) {
+                    const input = cell.querySelector('.effort-input');
+                    input.value = currentValue;
+                    saveEffort(employeeId, parseInt(cell.dataset.project), parseInt(cell.dataset.week), currentValue);
+                }
+            });
+            
+            hideContextMenu();
+        }
+        
+        function fillRight() {
+            if (!selectedCell) return;
+            
+            const currentValue = selectedCell.querySelector('.effort-input').value;
+            const employeeId = parseInt(selectedCell.dataset.employee);
+            const projectId = parseInt(selectedCell.dataset.project);
+            const startWeekIndex = parseInt(selectedCell.dataset.weekIndex);
+            
+            // Fill all cells to the right in the same row
+            for (let i = startWeekIndex + 1; i < weekCount; i++) {
+                const nextCell = document.querySelector(`[data-employee="${employeeId}"][data-project="${projectId}"][data-week-index="${i}"]`);
+                if (nextCell) {
+                    const input = nextCell.querySelector('.effort-input');
+                    input.value = currentValue;
+                    saveEffort(employeeId, projectId, parseInt(nextCell.dataset.week), currentValue);
+                }
+            }
+            
+            hideContextMenu();
+        }
+        
+        function clearCells() {
+            if (!selectedCell) return;
+            
+            const input = selectedCell.querySelector('.effort-input');
+            input.value = 0;
+            
+            const employeeId = parseInt(selectedCell.dataset.employee);
+            const projectId = parseInt(selectedCell.dataset.project);
+            const week = parseInt(selectedCell.dataset.week);
+            
+            saveEffort(employeeId, projectId, week, 0);
+            hideContextMenu();
+        }
+        
+        function autoFillPattern() {
+            if (!selectedCell) return;
+            
+            const employeeId = parseInt(selectedCell.dataset.employee);
+            const projectId = parseInt(selectedCell.dataset.project);
+            const startWeekIndex = parseInt(selectedCell.dataset.weekIndex);
+            
+            // Create a pattern: 1, 0.5, 2, 1, 0.5, 2, ...
+            const pattern = [1, 0.5, 2];
+            
+            for (let i = 0; i < 9; i++) { // Fill next 9 cells
+                const nextCell = document.querySelector(`[data-employee="${employeeId}"][data-project="${projectId}"][data-week-index="${startWeekIndex + i}"]`);
+                if (nextCell) {
+                    const input = nextCell.querySelector('.effort-input');
+                    const patternValue = pattern[i % pattern.length];
+                    input.value = patternValue;
+                    saveEffort(employeeId, projectId, parseInt(nextCell.dataset.week), patternValue);
+                }
+            }
+            
+            hideContextMenu();
+        }
+        
+        function fillWeeklyPattern() {
+            if (!selectedCell) return;
+            
+            const employeeId = parseInt(selectedCell.dataset.employee);
+            const projectId = parseInt(selectedCell.dataset.project);
+            const startWeekIndex = parseInt(selectedCell.dataset.weekIndex);
+            
+            // Create a weekly work pattern: 1 day for 5 days, then 0 for 2 days (weekend)
+            const weeklyPattern = [1, 1, 1, 1, 1, 0, 0];
+            
+            for (let i = 0; i < 14; i++) { // Fill next 2 weeks
+                const nextCell = document.querySelector(`[data-employee="${employeeId}"][data-project="${projectId}"][data-week-index="${startWeekIndex + i}"]`);
+                if (nextCell) {
+                    const input = nextCell.querySelector('.effort-input');
+                    const patternValue = weeklyPattern[i % weeklyPattern.length];
+                    input.value = patternValue;
+                    saveEffort(employeeId, projectId, parseInt(nextCell.dataset.week), patternValue);
+                }
+            }
+            
+            hideContextMenu();
+        }
+        
+        function setupFillHandleEvents() {
+            // Prevent default drag behavior on the table
+            document.getElementById('allocationGrid').addEventListener('dragstart', (e) => {
+                e.preventDefault();
+            });
+            
+            // Handle keyboard shortcuts
+            document.addEventListener('keydown', (event) => {
+                if (event.ctrlKey && event.key === 'd' && selectedCell) {
+                    event.preventDefault();
+                    fillDown();
+                }
+                if (event.ctrlKey && event.key === 'r' && selectedCell) {
+                    event.preventDefault();
+                    fillRight();
+                }
+            });
+        }
+        
+        
+        async function clearAllData() {
+            if (!confirm('Are you sure you want to clear effort data for current view? This cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                // Get current view filters
+                const weeks = generateTimeColumns();
+                const weekValues = weeks.map(w => w.value);
+                
+                let filteredEmployees = employees;
+                if (currentEmployee) {
+                    filteredEmployees = employees.filter(emp => emp.id == currentEmployee);
+                } else if (currentDepartment) {
+                    filteredEmployees = employees.filter(emp => emp.department === currentDepartment);
+                }
+                
+                // Clear efforts for current view
+                const employeeIds = filteredEmployees.map(emp => emp.id);
+                await fetch(`${API_BASE}/efforts/clear-view`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employeeIds, weekValues })
+                });
+                
+                // Update local data
+                efforts = efforts.filter(e => {
+                    const employeeMatch = filteredEmployees.some(emp => emp.id === e.employeeId);
+                    const weekMatch = weekValues.includes(e.week);
+                    return !(employeeMatch && weekMatch);
+                });
+                
+                renderAllocationGrid();
+                alert('Current view data cleared successfully!');
+            } catch (error) {
+                console.error('Error clearing data:', error);
+                alert('Error clearing data. Please try again.');
+            }
+        }
+        
+
+        
+        // Chatbot functionality
+        let chatbotOpen = false;
+        
+        function toggleChatbot() {
+            const window = document.getElementById('chatbotWindow');
+            chatbotOpen = !chatbotOpen;
+            window.style.display = chatbotOpen ? 'flex' : 'none';
+            
+            if (chatbotOpen) {
+                document.getElementById('chatbotInput').focus();
+            }
+        }
+        
+        function handleChatbotKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatbotMessage();
+            }
+        }
+        
+        function sendChatbotMessage() {
+            const input = document.getElementById('chatbotInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addChatbotMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Simulate bot response
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = generateChatbotResponse(message);
+                addChatbotMessage(response, 'bot');
+            }, 1000 + Math.random() * 1000);
+        }
+        
+        function addChatbotMessage(content, sender) {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = sender === 'bot' ? '🤖' : '👤';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        
+        function generateChatbotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Check for resource allocation input commands
+            const allocationMatch = parseAllocationCommand(message);
+            if (allocationMatch) {
+                return processAllocationCommand(allocationMatch);
+            }
+            
+            // Check for deletion commands
+            const deletionMatch = parseDeletionCommand(message);
+            if (deletionMatch) {
+                return processDeletionCommand(deletionMatch);
+            }
+            
+            // Resource allocation specific responses
+            if (lowerMessage.includes('fill handle') || lowerMessage.includes('auto fill')) {
+                return 'The fill handle is the blue square that appears when you select a cell. You can drag it to auto-fill adjacent cells with the same value, or right-click for advanced fill options like series, patterns, and weekly schedules!';
+            }
+            
+            if (lowerMessage.includes('shortcut') || lowerMessage.includes('keyboard')) {
+                return 'Here are useful shortcuts:<br>• <kbd>Ctrl+D</kbd>: Fill Down<br>• <kbd>Ctrl+R</kbd>: Fill Right<br>• Right-click on cells for fill options<br>• Click "Current Week" to jump to this week<br>• Use filters to focus on specific employees or projects';
+            }
+            
+            if (lowerMessage.includes('color') || lowerMessage.includes('green') || lowerMessage.includes('yellow')) {
+                return 'Cell colors indicate project types:<br>🟢 <strong>Green</strong>: Paid Project work<br>🟡 <strong>Yellow</strong>: Non-Project work<br><br>Total colors show workload:<br>🔴 <strong>Red</strong>: Over 5 days (overloaded)<br>⚫ <strong>Black</strong>: Exactly 5 days (full capacity)<br>🟢 <strong>Green</strong>: Under 5 days (available capacity)';
+            }
+            
+            if (lowerMessage.includes('filter') || lowerMessage.includes('department') || lowerMessage.includes('employee')) {
+                return 'Use the filters to focus your view:<br>• <strong>Employee</strong>: View specific person\'s allocation<br>• <strong>Department</strong>: See all employees in a department<br>• <strong>Project</strong>: Focus on specific project assignments<br>• <strong>View Type</strong>: Switch between weekly and monthly views';
+            }
+            
+            if (lowerMessage.includes('save') || lowerMessage.includes('data')) {
+                return 'Your allocation data is automatically saved as you type! Changes are saved to the database within 300ms of your input. No need to manually save - just start typing effort values and they\'re stored immediately.';
+            }
+            
+            if (lowerMessage.includes('excel') || lowerMessage.includes('export') || lowerMessage.includes('download')) {
+                return 'Click the "📊 Download Excel" button to export your current view as a CSV file. This includes all visible employees, projects, and time periods based on your current filters and date range.';
+            }
+            
+            if (lowerMessage.includes('week') || lowerMessage.includes('time') || lowerMessage.includes('date')) {
+                return 'Time management features:<br>• Use "📅 Current Week" to jump to this week<br>• Adjust the start week and duration (4-16 weeks)<br>• Switch to monthly view for broader planning<br>• The system shows weeks as Year/Month/Week format';
+            }
+            
+            if (lowerMessage.includes('project mapping') || lowerMessage.includes('assign')) {
+                return 'Project mapping connects employees to projects. Visit the "🔗 Project Mapping" page to:<br>• Assign employees to projects<br>• Set project types (Paid/Non-Project)<br>• Manage project assignments<br>Without proper mapping, employees won\'t see project rows for allocation.';
+            }
+            
+            if (lowerMessage.includes('workload') || lowerMessage.includes('capacity') || lowerMessage.includes('overload')) {
+                return 'Monitor workload with color indicators:<br>• Aim for 5 days per week maximum<br>• Red totals indicate overallocation<br>• Use the "📊 Workload Summary" page for detailed analysis<br>• Distribute work evenly across team members';
+            }
+            
+            if (lowerMessage.includes('clear') || lowerMessage.includes('delete') || lowerMessage.includes('reset')) {
+                return 'To clear data:<br>• Use "🗑️ Clear All Data in Current View" to reset visible allocations<br>• Right-click individual cells and select "🗑️ Clear Cell"<br>• Set effort values to 0 to remove allocations<br>⚠️ Clearing data cannot be undone!';
+            }
+            
+            if (lowerMessage.includes('help') || lowerMessage.includes('how') || lowerMessage.includes('tutorial')) {
+                return 'Here\'s how to use the Resource Allocation System:<br>1. Set up employees, departments, and projects in the master pages<br>2. Map employees to projects in Project Mapping<br>3. Use filters to focus on specific views<br>4. Click cells to enter effort values (0-5 days)<br>5. Use fill handles for quick data entry<br>6. Monitor workload with color indicators';
+            }
+            
+            if (lowerMessage.includes('error') || lowerMessage.includes('problem') || lowerMessage.includes('issue')) {
+                return 'Common troubleshooting:<br>• <strong>No projects showing?</strong> Check Project Mapping<br>• <strong>Can\'t enter more than 5?</strong> Daily limit is 5 days<br>• <strong>Data not saving?</strong> Check your internet connection<br>• <strong>Empty view?</strong> Ensure employees are assigned to projects<br>Need more help? Check the master data pages first!';
+            }
+            
+            // Check if user is asking about allocation commands
+            if (lowerMessage.includes('allocate') || lowerMessage.includes('assign') || lowerMessage.includes('manday') || lowerMessage.includes('resource') || lowerMessage.includes('input') || lowerMessage.includes('manage')) {
+                return `I can help you input and manage resource allocations! Try these command formats:<br><br>
+                <strong>📝 Input Commands:</strong><br>
+                • "Allocate 3 days to John for Project Alpha in week 2025/01/W1"<br>
+                • "Input 2.5 mandays for Sarah on Mobile App for this week"<br>
+                • "Assign 4 days to Mike on Database project in January 2025"<br>
+                • "Manage resource: 1.5 days for Lisa on Testing in current week"<br><br>
+                <strong>📋 Required Information:</strong><br>
+                • <strong>Duration:</strong> How many days/mandays (0.5 to 5 days)<br>
+                • <strong>Employee:</strong> Who to allocate to<br>
+                • <strong>Project:</strong> Which project<br>
+                • <strong>Time Period:</strong> Week/month/year<br><br>
+                <strong>⏰ Time Formats:</strong><br>
+                • "this week" or "current week"<br>
+                • "next week"<br>
+                • "2025/01/W1" (Week 1 of January 2025)<br>
+                • "January 2025" (entire month)<br>
+                • "2025" (entire year)<br>
+                • "2025-W15" (ISO week format)<br><br>
+                Available employees: ${employees.map(e => e.name).join(', ')}<br>
+                Available projects: ${projects.map(p => p.name).join(', ')}<br><br>
+                <strong>📋 Project Mapping:</strong><br>
+                ${(() => {
+                    const mappings = {};
+                    assignments.forEach(a => {
+                        const emp = employees.find(e => e.id === a.employeeId);
+                        const proj = projects.find(p => p.id === a.projectId);
+                        if (emp && proj) {
+                            if (!mappings[emp.name]) mappings[emp.name] = [];
+                            mappings[emp.name].push(proj.name);
+                        }
+                    });
+                    return Object.entries(mappings).map(([emp, projs]) => 
+                        `• ${emp}: ${projs.join(', ')}`
+                    ).join('<br>');
+                })()}`;
+            }
+            
+            // Check if user is asking about deletion commands
+            if (lowerMessage.includes('delete') || lowerMessage.includes('remove') || lowerMessage.includes('clear') || lowerMessage.includes('unallocate')) {
+                return `I can help you delete allocations! Try these deletion commands:<br><br>
+                <strong>🗑️ Deletion Commands:</strong><br>
+                • "Delete [Employee Name] current week" (all projects)<br>
+                • "Remove [Employee] from [Project] for this week"<br>
+                • "Clear [Employee] allocation for [Project] in January 2025"<br>
+                • "Delete all resources for [Project] in 2025-W15"<br><br>
+                <strong>📋 Deletion Scope:</strong><br>
+                • <strong>Employee-only:</strong> Removes all project allocations for employee<br>
+                • <strong>Project-specific:</strong> Removes employee from specific project<br>
+                • <strong>Time-bound:</strong> Deletes within specified time period<br><br>
+                Available employees: ${employees.map(e => e.name).join(', ')}<br>
+                Available projects: ${projects.map(p => p.name).join(', ')}<br><br>
+                <strong>📋 Project Mapping:</strong><br>
+                ${(() => {
+                    const mappings = {};
+                    assignments.forEach(a => {
+                        const emp = employees.find(e => e.id === a.employeeId);
+                        const proj = projects.find(p => p.id === a.projectId);
+                        if (emp && proj) {
+                            if (!mappings[emp.name]) mappings[emp.name] = [];
+                            mappings[emp.name].push(proj.name);
+                        }
+                    });
+                    return Object.entries(mappings).map(([emp, projs]) => 
+                        `• ${emp}: ${projs.join(', ')}`
+                    ).join('<br>');
+                })()}`;
+            }
+            
+            // General responses
+            const responses = [
+                'I can help you with resource allocation! Try asking about features, shortcuts, or <strong>input resource allocations directly</strong> by telling me the employee, project, days, and time period.',
+                'What would you like to know? I can explain system features, help with data entry, or <strong>manage resource allocations</strong> through natural language commands.',
+                'Feel free to ask about any feature! I can help with filtering, project management, workload planning, or <strong>input mandays directly</strong> into the system.',
+                'I\'m here to help! Ask me about features like auto-fill, color coding, time management, or <strong>tell me to allocate resources</strong> and I\'ll handle the database input.',
+                'Need assistance? I can explain system usage, troubleshoot issues, or <strong>process resource allocation commands</strong> to update the allocation table automatically.'
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        function parseAllocationCommand(message) {
+            const patterns = [
+                // "Allocate X days to Employee for Project in Time"
+                /(?:allocate|assign|set)\s+(\d+(?:\.\d+)?)\s+(?:days?|mandays?)\s+(?:to|for)\s+([\w\s]+?)\s+(?:on|for|to)\s+([\w\s]+?)\s+(?:in|for|during)\s+([\w\/\s\d-]+)/i,
+                // "Employee needs X days on Project for Time"
+                /([\w\s]+?)\s+needs\s+(\d+(?:\.\d+)?)\s+(?:days?|mandays?)\s+(?:on|for)\s+([\w\s]+?)\s+(?:in|for|during)\s+([\w\/\s\d-]+)/i,
+                // "Put X days for Employee on Project in Time"
+                /(?:put|add)\s+(\d+(?:\.\d+)?)\s+(?:days?|mandays?)\s+(?:for|to)\s+([\w\s]+?)\s+(?:on|for)\s+([\w\s]+?)\s+(?:in|for|during)\s+([\w\/\s\d-]+)/i,
+                // "Input X mandays for Employee on Project in Time"
+                /(?:input|enter)\s+(\d+(?:\.\d+)?)\s+(?:days?|mandays?)\s+(?:for|to)\s+([\w\s]+?)\s+(?:on|for)\s+([\w\s]+?)\s+(?:in|for|during)\s+([\w\/\s\d-]+)/i,
+                // "Manage resource: X days for Employee on Project in Time"
+                /(?:manage\s+resource|resource\s+allocation)\s*:?\s*(\d+(?:\.\d+)?)\s+(?:days?|mandays?)\s+(?:for|to)\s+([\w\s]+?)\s+(?:on|for)\s+([\w\s]+?)\s+(?:in|for|during)\s+([\w\/\s\d-]+)/i,
+                // "Employee X days Project Time" (simplified format)
+                /([\w\s]+?)\s+(\d+(?:\.\d+)?)\s+(?:days?|mandays?)\s+([\w\s]+?)\s+([\w\/\s\d-]+)/i,
+                // "X days Employee Project Time" (alternative order)
+                /(\d+(?:\.\d+)?)\s+(?:days?|mandays?)\s+([\w\s]+?)\s+([\w\s]+?)\s+([\w\/\s\d-]+)/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = message.match(pattern);
+                if (match) {
+                    // Handle different match group arrangements
+                    if (pattern.source.includes('needs')) {
+                        return {
+                            days: parseFloat(match[2]),
+                            employee: match[1].trim(),
+                            project: match[3].trim(),
+                            time: match[4].trim()
+                        };
+                    } else if (pattern.source.includes('Employee X days')) {
+                        return {
+                            days: parseFloat(match[2]),
+                            employee: match[1].trim(),
+                            project: match[3].trim(),
+                            time: match[4].trim()
+                        };
+                    } else if (pattern.source.includes('X days Employee')) {
+                        return {
+                            days: parseFloat(match[1]),
+                            employee: match[2].trim(),
+                            project: match[3].trim(),
+                            time: match[4].trim()
+                        };
+                    } else {
+                        return {
+                            days: parseFloat(match[1]),
+                            employee: match[2].trim(),
+                            project: match[3].trim(),
+                            time: match[4].trim()
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+        
+        function parseDeletionCommand(message) {
+            const patterns = [
+                // "Delete Employee's allocation for Project in Time"
+                /(?:delete|remove|clear)\s+([\w\s]+?)(?:'s)?\s+(?:allocation|assignment)?\s*(?:for|from|on)\s+([\w\s]+?)\s+(?:in|for|during)\s+([\w\/\s\d-]+)/i,
+                // "Remove Employee from Project for Time"
+                /(?:remove|unallocate)\s+([\w\s]+?)\s+(?:from|for)\s+([\w\s]+?)\s+(?:in|for|during)\s+([\w\/\s\d-]+)/i,
+                // "Clear all resources for Project in Time"
+                /(?:clear|delete)\s+(?:all\s+)?(?:resources?|allocations?)\s+(?:for|from)\s+([\w\s]+?)\s+(?:in|for|during)\s+([\w\/\s\d-]+)/i,
+                // "Delete Employee from Project"
+                /(?:delete|remove|clear)\s+([\w\s]+?)\s+(?:from|for)\s+([\w\s]+?)$/i,
+                // "Delete resource value in current week for Employee"
+                /(?:delete|remove|clear)\s+(?:resource\s+value|allocation)\s+(?:in|for)\s+(?:current\s+week|this\s+week)\s+(?:for|from)\s+([\w\s]+)/i,
+                // "Delete Employee in current week" or "Delete Employee current week"
+                /(?:delete|remove|clear)\s+([\w\s]+?)\s+(?:in\s+)?(?:current\s+week|this\s+week)/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = message.match(pattern);
+                if (match) {
+                    if (match.length === 4) {
+                        return {
+                            employee: match[1].trim(),
+                            project: match[2].trim(),
+                            time: match[3].trim()
+                        };
+                    } else if (match.length === 3) {
+                        // Check if it's "clear all for project" pattern
+                        if (message.toLowerCase().includes('all')) {
+                            return {
+                                employee: 'all',
+                                project: match[1].trim(),
+                                time: match[2].trim()
+                            };
+                        } else {
+                            return {
+                                employee: match[1].trim(),
+                                project: match[2].trim(),
+                                time: 'current'
+                            };
+                        }
+                    } else if (match.length === 2) {
+                        // Single employee, current week, all projects
+                        return {
+                            employee: match[1].trim(),
+                            project: 'all',
+                            time: 'current'
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+        
+        function processAllocationCommand(allocation) {
+            try {
+                // Find employee
+                const employee = findEmployee(allocation.employee);
+                if (!employee) {
+                    return `❌ Employee "${allocation.employee}" not found. Available employees: ${employees.map(e => e.name).join(', ')}`;
+                }
+                
+                // Find project
+                const project = findProject(allocation.project);
+                if (!project) {
+                    return `❌ Project "${allocation.project}" not found. Available projects: ${projects.map(p => p.name).join(', ')}`;
+                }
+                
+                // Check if employee is assigned to project
+                const isAssigned = assignments.some(a => a.employeeId === employee.id && a.projectId === project.id);
+                if (!isAssigned) {
+                    return `❌ ${employee.name} is not assigned to ${project.name}. Please check Project Mapping first.`;
+                }
+                
+                // Parse time period
+                const timeInfo = parseTimeInfo(allocation.time);
+                if (!timeInfo) {
+                    return `❌ Could not understand time period "${allocation.time}". <br><br>📅 <strong>Valid formats:</strong><br>• "this week" or "current week"<br>• "next week"<br>• "2025/01/W1" (Week 1 of January 2025)<br>• "January 2025" (full month)<br>• "2025" (full year)<br>• "2025-W15" (ISO week format)`;
+                }
+                
+                // Validate effort
+                if (allocation.days > 5) {
+                    return `❌ Cannot allocate more than 5 days per week. You requested ${allocation.days} days.`;
+                }
+                
+                // Show confirmation dialog
+                return showAllocationConfirmation(employee, project, allocation.days, timeInfo, allocation.time);
+                
+            } catch (error) {
+                return `❌ Error processing allocation: ${error.message}`;
+            }
+        }
+        
+        function findEmployee(name) {
+            const searchName = name.toLowerCase();
+            return employees.find(emp => 
+                emp.name.toLowerCase().includes(searchName) || 
+                searchName.includes(emp.name.toLowerCase())
+            );
+        }
+        
+        function findProject(name) {
+            const searchName = name.toLowerCase();
+            return projects.find(proj => 
+                proj.name.toLowerCase().includes(searchName) || 
+                searchName.includes(proj.name.toLowerCase())
+            );
+        }
+        
+        function parseTimeInfo(timeStr) {
+            const lower = timeStr.toLowerCase();
+            
+            // Current week variations
+            if (lower.includes('this week') || lower.includes('current week') || lower.includes('now') || lower === 'today') {
+                const now = new Date();
+                return {
+                    type: 'week',
+                    weeks: [getWeekNumber(now) + (now.getFullYear() * 100)]
+                };
+            }
+            
+            // Next week
+            if (lower.includes('next week')) {
+                const nextWeek = new Date();
+                nextWeek.setDate(nextWeek.getDate() + 7);
+                return {
+                    type: 'week',
+                    weeks: [getWeekNumber(nextWeek) + (nextWeek.getFullYear() * 100)]
+                };
+            }
+            
+            // Specific week format (2025/01/W1, 2025-W01, W1 2025)
+            const weekMatch = timeStr.match(/(\d{4})\/(\d{1,2})\/W(\d{1,2})|(\d{4})-W(\d{1,2})|W(\d{1,2})\s+(\d{4})/i);
+            if (weekMatch) {
+                let year, month, weekOfMonth;
+                if (weekMatch[1]) {
+                    // Format: 2025/01/W1 (Year/Month/Week)
+                    year = parseInt(weekMatch[1]);
+                    month = parseInt(weekMatch[2]);
+                    weekOfMonth = parseInt(weekMatch[3]);
+                } else if (weekMatch[4]) {
+                    // Format: 2025-W15 (ISO week)
+                    year = parseInt(weekMatch[4]);
+                    const isoWeek = parseInt(weekMatch[5]);
+                    const weekValue = isoWeek + (year * 100);
+                    return {
+                        type: 'week',
+                        weeks: [weekValue]
+                    };
+                } else {
+                    // Format: W1 2025
+                    year = parseInt(weekMatch[7]);
+                    weekOfMonth = parseInt(weekMatch[6]);
+                    month = 1; // Default to January
+                }
+                
+                const weekValue = calculateWeekValue(year, month, weekOfMonth);
+                return {
+                    type: 'week',
+                    weeks: [weekValue]
+                };
+            }
+            
+            // Month format (January 2025, 2025-01, Jan 2025, 01/2025)
+            const monthMatch = timeStr.match(/(\w+)\s+(\d{4})|(\d{4})-(\d{1,2})|(\d{1,2})\/(\d{4})/i);
+            if (monthMatch) {
+                let year, month;
+                if (monthMatch[1]) {
+                    year = parseInt(monthMatch[2]);
+                    month = getMonthNumber(monthMatch[1]);
+                } else if (monthMatch[3]) {
+                    year = parseInt(monthMatch[3]);
+                    month = parseInt(monthMatch[4]);
+                } else {
+                    year = parseInt(monthMatch[5]);
+                    month = parseInt(monthMatch[4]);
+                }
+                return {
+                    type: 'month',
+                    year: year,
+                    month: month
+                };
+            }
+            
+            // Quarter format (Q1 2025, 2025 Q2)
+            const quarterMatch = timeStr.match(/Q(\d)\s+(\d{4})|(\d{4})\s+Q(\d)/i);
+            if (quarterMatch) {
+                const year = parseInt(quarterMatch[2] || quarterMatch[3]);
+                const quarter = parseInt(quarterMatch[1] || quarterMatch[4]);
+                return {
+                    type: 'quarter',
+                    year: year,
+                    quarter: quarter
+                };
+            }
+            
+            // Year format
+            const yearMatch = timeStr.match(/\b(\d{4})\b/);
+            if (yearMatch) {
+                return {
+                    type: 'year',
+                    year: parseInt(yearMatch[1])
+                };
+            }
+            
+            return null;
+        }
+        
+        function getMonthNumber(monthName) {
+            const months = {
+                'january': 1, 'jan': 1, 'february': 2, 'feb': 2, 'march': 3, 'mar': 3,
+                'april': 4, 'apr': 4, 'may': 5, 'june': 6, 'jun': 6,
+                'july': 7, 'jul': 7, 'august': 8, 'aug': 8, 'september': 9, 'sep': 9,
+                'october': 10, 'oct': 10, 'november': 11, 'nov': 11, 'december': 12, 'dec': 12
+            };
+            return months[monthName.toLowerCase()] || 1;
+        }
+        
+        function calculateWeekValue(year, month, weekOfMonth) {
+            // Calculate the first day of the specified week in the month
+            const firstDayOfMonth = new Date(year, month - 1, 1);
+            const firstWeekStart = new Date(firstDayOfMonth);
+            firstWeekStart.setDate(1 + (weekOfMonth - 1) * 7);
+            
+            // Get the ISO week number for this date
+            const weekNumber = getWeekNumber(firstWeekStart);
+            return weekNumber + (year * 100);
+        }
+        
+        function showAllocationConfirmation(employee, project, days, timeInfo, originalTimeString) {
+            // Calculate allocation details
+            let totalWeeks = 0;
+            let timeDescription = '';
+            
+            if (timeInfo.type === 'week') {
+                totalWeeks = timeInfo.weeks.length;
+                if (totalWeeks === 1) {
+                    timeDescription = originalTimeString;
+                } else {
+                    timeDescription = `${totalWeeks} weeks`;
+                }
+            } else if (timeInfo.type === 'month') {
+                const monthStart = new Date(timeInfo.year, timeInfo.month - 1, 1);
+                const monthEnd = new Date(timeInfo.year, timeInfo.month, 0);
+                totalWeeks = Math.ceil((monthEnd - monthStart) / (7 * 24 * 60 * 60 * 1000));
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                timeDescription = `${monthNames[timeInfo.month - 1]} ${timeInfo.year} (${totalWeeks} weeks)`;
+            } else if (timeInfo.type === 'year') {
+                totalWeeks = 52;
+                timeDescription = `${timeInfo.year} (52 weeks)`;
+            }
+            
+            const totalDays = totalWeeks * days;
+            
+            // Create confirmation dialog
+            const overlay = document.createElement('div');
+            overlay.className = 'confirmation-overlay';
+            overlay.style.display = 'flex';
+            
+            overlay.innerHTML = `
+                <div class="confirmation-dialog">
+                    <div class="confirmation-header">
+                        <div class="confirmation-icon">⚠️</div>
+                        <h3 class="confirmation-title">Confirm Resource Allocation</h3>
+                    </div>
+                    
+                    <div class="confirmation-content">
+                        Are you sure you want to proceed with this allocation? This will update the database and allocation table.
+                    </div>
+                    
+                    <div class="confirmation-details">
+                        <strong>📋 Resource Allocation Details:</strong><br>
+                        👤 <strong>Employee:</strong> ${employee.name} (${employee.department})<br>
+                        🎯 <strong>Project:</strong> ${project.name}<br>
+                        ⏱️ <strong>Effort:</strong> ${days} days per week<br>
+                        📅 <strong>Time Period:</strong> ${timeDescription}<br>
+                        📊 <strong>Total Allocation:</strong> ${totalDays} days across ${totalWeeks} weeks<br>
+                        💾 <strong>Action:</strong> Data will be saved to database and table updated
+                    </div>
+                    
+                    <div class="confirmation-actions">
+                        <button class="confirmation-btn cancel" onclick="cancelAllocation(); event.stopPropagation();">Cancel</button>
+                        <button class="confirmation-btn confirm" onclick="confirmAllocation(); event.stopPropagation();">Confirm & Apply</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Store allocation data for confirmation
+            window.pendingAllocation = { employee, project, days, timeInfo, totalWeeks, totalDays, originalTimeString };
+            
+            return '⏳ <strong>Confirmation Required:</strong> Please review and confirm the resource allocation details in the dialog above. This will input the mandays into the system and update the allocation table.';
+        }
+        
+        function cancelAllocation() {
+            const overlay = document.querySelector('.confirmation-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            window.pendingAllocation = null;
+            addChatbotMessage('❌ Allocation cancelled.', 'bot');
+        }
+        
+        function confirmAllocation() {
+            // Close dialog immediately
+            const overlay = document.querySelector('.confirmation-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            processAllocation();
+        }
+        
+        async function processAllocation() {
+            if (window.confirmationInProgress) return;
+            window.confirmationInProgress = true;
+            
+            const overlay = document.querySelector('.confirmation-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            
+            if (!window.pendingAllocation) {
+                addChatbotMessage('❌ No pending allocation found.', 'bot');
+                window.confirmationInProgress = false;
+                return;
+            }
+            
+            const { employee, project, days, timeInfo, totalWeeks, totalDays } = window.pendingAllocation;
+            
+            // Show processing message
+            addChatbotMessage('⏳ Processing allocation...', 'bot');
+            
+            try {
+                const result = await applyAllocation(employee, project, days, timeInfo);
+                addChatbotMessage(result, 'bot');
+            } catch (error) {
+                addChatbotMessage(`❌ Error applying allocation: ${error.message}`, 'bot');
+            }
+            
+            window.pendingAllocation = null;
+            window.confirmationInProgress = false;
+        }
+        
+        function processDeletionCommand(deletion) {
+            try {
+                console.log('Deletion parsed:', deletion);
+                
+                // Find specific employee first
+                const employee = findEmployee(deletion.employee);
+                if (!employee) {
+                    return `❌ Employee "${deletion.employee}" not found.<br><br>👥 Available employees: ${employees.map(e => e.name).join(', ')}`;
+                }
+                
+                // Handle case where project is 'all' (employee-only deletion)
+                let project = null;
+                if (deletion.project.toLowerCase() !== 'all') {
+                    project = findProject(deletion.project);
+                    if (!project) {
+                        return `❌ Project "${deletion.project}" not found.<br><br>🎯 Available projects: ${projects.map(p => p.name).join(', ')}`;
+                    }
+                }
+                
+                let targetEmployees = [];
+                let targetProjects = [];
+                
+                if (deletion.employee.toLowerCase() === 'all') {
+                    // Delete all employees from project
+                    const assignedEmployeeIds = assignments
+                        .filter(a => a.projectId === project.id)
+                        .map(a => a.employeeId);
+                    targetEmployees = employees.filter(emp => assignedEmployeeIds.includes(emp.id));
+                    targetProjects = [project];
+                } else {
+                    // Find specific employee
+                    const employee = findEmployee(deletion.employee);
+                    if (!employee) {
+                        return `❌ Employee "${deletion.employee}" not found. Available employees: ${employees.map(e => e.name).join(', ')}`;
+                    }
+                    
+                    targetEmployees = [employee];
+                    
+                    if (deletion.project.toLowerCase() === 'all') {
+                        // Delete employee from all assigned projects
+                        const assignedProjectIds = assignments
+                            .filter(a => a.employeeId === employee.id)
+                            .map(a => a.projectId);
+                        targetProjects = projects.filter(proj => assignedProjectIds.includes(proj.id));
+                        
+                        if (targetProjects.length === 0) {
+                            return `❌ ${employee.name} is not assigned to any projects.<br><br>🔗 Check Project Mapping to assign projects first.`;
+                        }
+                    } else {
+                        // Check if employee is assigned to project
+                        const isAssigned = assignments.some(a => a.employeeId === employee.id && a.projectId === project.id);
+                        if (!isAssigned) {
+                            const employeeAssignments = assignments.filter(a => a.employeeId === employee.id);
+                            const assignedProjectNames = employeeAssignments.map(a => {
+                                const proj = projects.find(p => p.id === a.projectId);
+                                return proj ? proj.name : 'Unknown';
+                            }).join(', ');
+                            return `❌ ${employee.name} is not assigned to ${project.name}.<br><br>👤 ${employee.name} is assigned to: ${assignedProjectNames || 'No projects'}`;
+                        }
+                        targetProjects = [project];
+                    }
+                }
+                
+                // Parse time period
+                let timeInfo = null;
+                if (deletion.time && deletion.time !== 'current') {
+                    timeInfo = parseTimeInfo(deletion.time);
+                    if (!timeInfo) {
+                        return `❌ Could not understand time period "${deletion.time}". Try formats like "week 2025/01/W1", "this week", "January 2025", or "2025".`;
+                    }
+                } else {
+                    // Default to current week
+                    const now = new Date();
+                    timeInfo = {
+                        type: 'week',
+                        weeks: [getWeekNumber(now) + (now.getFullYear() * 100)]
+                    };
+                }
+                
+                // Show deletion confirmation
+                return showDeletionConfirmation(targetEmployees, targetProjects, timeInfo);
+                
+            } catch (error) {
+                return `❌ Error processing deletion: ${error.message}`;
+            }
+        }
+        
+        function showDeletionConfirmation(employees, projects, timeInfo) {
+            // Calculate deletion details
+            let totalWeeks = 0;
+            let timeDescription = '';
+            
+            if (timeInfo.type === 'week') {
+                totalWeeks = timeInfo.weeks.length;
+                timeDescription = totalWeeks === 1 ? 'this week' : `${totalWeeks} weeks`;
+            } else if (timeInfo.type === 'month') {
+                const monthStart = new Date(timeInfo.year, timeInfo.month - 1, 1);
+                const monthEnd = new Date(timeInfo.year, timeInfo.month, 0);
+                totalWeeks = Math.ceil((monthEnd - monthStart) / (7 * 24 * 60 * 60 * 1000));
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                timeDescription = `${monthNames[timeInfo.month - 1]} ${timeInfo.year} (${totalWeeks} weeks)`;
+            } else if (timeInfo.type === 'year') {
+                totalWeeks = 52;
+                timeDescription = `${timeInfo.year} (52 weeks)`;
+            }
+            
+            const employeeNames = employees.map(e => e.name).join(', ');
+            const projectNames = projects.map(p => p.name).join(', ');
+            
+            // Create confirmation dialog
+            const overlay = document.createElement('div');
+            overlay.className = 'confirmation-overlay';
+            overlay.style.display = 'flex';
+            
+            overlay.innerHTML = `
+                <div class="confirmation-dialog">
+                    <div class="confirmation-header">
+                        <div class="confirmation-icon" style="background: #fee2e2; color: #dc2626;">🗑️</div>
+                        <h3 class="confirmation-title">Confirm Allocation Deletion</h3>
+                    </div>
+                    
+                    <div class="confirmation-content">
+                        Are you sure you want to delete these allocations? This will permanently remove the data from the database and table.
+                    </div>
+                    
+                    <div class="confirmation-details">
+                        <strong>🗑️ Deletion Details:</strong><br>
+                        👤 <strong>Employee(s):</strong> ${employeeNames}<br>
+                        🎯 <strong>Project(s):</strong> ${projectNames}<br>
+                        📅 <strong>Period:</strong> ${timeDescription}<br>
+                        📊 <strong>Scope:</strong> ${employees.length} employee(s) × ${projects.length} project(s) × ${totalWeeks} weeks
+                    </div>
+                    
+                    <div class="confirmation-actions">
+                        <button class="confirmation-btn cancel" onclick="cancelDeletion(); event.stopPropagation();">Cancel</button>
+                        <button class="confirmation-btn confirm" style="background: #dc2626;" onclick="confirmDeletion(); event.stopPropagation();">Delete Allocations</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Store deletion data for confirmation
+            window.pendingDeletion = { employees, projects, timeInfo, totalWeeks };
+            
+            return '⏳ Please confirm the deletion details in the dialog above.';
+        }
+        
+        function cancelDeletion() {
+            const overlay = document.querySelector('.confirmation-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            window.pendingDeletion = null;
+            addChatbotMessage('❌ Deletion cancelled.', 'bot');
+        }
+        
+        async function confirmDeletion() {
+            if (window.deletionInProgress) return;
+            window.deletionInProgress = true;
+            
+            const overlay = document.querySelector('.confirmation-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            
+            if (!window.pendingDeletion) {
+                addChatbotMessage('❌ No pending deletion found.', 'bot');
+                window.deletionInProgress = false;
+                return;
+            }
+            
+            const { employees, projects, timeInfo, totalWeeks } = window.pendingDeletion;
+            
+            // Show processing message
+            addChatbotMessage('⏳ Processing deletion...', 'bot');
+            
+            try {
+                const result = await applyDeletion(employees, projects, timeInfo);
+                addChatbotMessage(result, 'bot');
+            } catch (error) {
+                addChatbotMessage(`❌ Error applying deletion: ${error.message}`, 'bot');
+            }
+            
+            window.pendingDeletion = null;
+            window.deletionInProgress = false;
+        }
+        
+        async function applyDeletion(targetEmployees, targetProjects, timeInfo) {
+            let deletedCount = 0;
+            let totalWeeks = 0;
+            
+            try {
+                for (const employee of targetEmployees) {
+                    for (const project of targetProjects) {
+                        if (timeInfo.type === 'week') {
+                            // Delete specific weeks
+                            for (const weekValue of timeInfo.weeks) {
+                                await saveEffort(employee.id, project.id, weekValue, 0);
+                                deletedCount++;
+                                totalWeeks++;
+                            }
+                        } else if (timeInfo.type === 'month') {
+                            // Delete all weeks in month
+                            const monthStart = new Date(timeInfo.year, timeInfo.month - 1, 1);
+                            const monthEnd = new Date(timeInfo.year, timeInfo.month, 0);
+                            
+                            let currentDate = new Date(monthStart);
+                            while (currentDate <= monthEnd) {
+                                const weekValue = getWeekNumber(currentDate) + (timeInfo.year * 100);
+                                await saveEffort(employee.id, project.id, weekValue, 0);
+                                deletedCount++;
+                                totalWeeks++;
+                                currentDate.setDate(currentDate.getDate() + 7);
+                            }
+                        } else if (timeInfo.type === 'year') {
+                            // Delete all weeks in year
+                            for (let week = 1; week <= 52; week++) {
+                                const weekValue = week + (timeInfo.year * 100);
+                                await saveEffort(employee.id, project.id, weekValue, 0);
+                                deletedCount++;
+                                totalWeeks++;
+                            }
+                        }
+                    }
+                }
+                
+                // Refresh the grid to show changes
+                renderAllocationGrid();
+                
+                const employeeNames = targetEmployees.map(e => e.name).join(', ');
+                const projectNames = targetProjects.map(p => p.name).join(', ');
+                return `✅ Successfully deleted allocations for <strong>${employeeNames}</strong> from <strong>${projectNames}</strong> across ${totalWeeks / (targetEmployees.length * targetProjects.length)} weeks. The allocation table has been updated!`;
+                
+            } catch (error) {
+                return `❌ Error deleting allocations: ${error.message}`;
+            }
+        }
+        
+        async function applyAllocation(employee, project, days, timeInfo) {
+            let successCount = 0;
+            let totalWeeks = 0;
+            
+            try {
+                if (timeInfo.type === 'week') {
+                    // Single week allocation
+                    for (const weekValue of timeInfo.weeks) {
+                        await saveEffort(employee.id, project.id, weekValue, days);
+                        successCount++;
+                        totalWeeks++;
+                    }
+                } else if (timeInfo.type === 'month') {
+                    // Monthly allocation - distribute across all weeks in month
+                    const monthStart = new Date(timeInfo.year, timeInfo.month - 1, 1);
+                    const monthEnd = new Date(timeInfo.year, timeInfo.month, 0);
+                    
+                    let currentDate = new Date(monthStart);
+                    while (currentDate <= monthEnd) {
+                        const weekValue = getWeekNumber(currentDate) + (timeInfo.year * 100);
+                        await saveEffort(employee.id, project.id, weekValue, days);
+                        successCount++;
+                        totalWeeks++;
+                        currentDate.setDate(currentDate.getDate() + 7);
+                    }
+                } else if (timeInfo.type === 'quarter') {
+                    // Quarterly allocation - distribute across all weeks in quarter
+                    const quarterStartMonth = (timeInfo.quarter - 1) * 3 + 1;
+                    const quarterEndMonth = timeInfo.quarter * 3;
+                    
+                    for (let month = quarterStartMonth; month <= quarterEndMonth; month++) {
+                        const monthStart = new Date(timeInfo.year, month - 1, 1);
+                        const monthEnd = new Date(timeInfo.year, month, 0);
+                        
+                        let currentDate = new Date(monthStart);
+                        while (currentDate <= monthEnd) {
+                            const weekValue = getWeekNumber(currentDate) + (timeInfo.year * 100);
+                            await saveEffort(employee.id, project.id, weekValue, days);
+                            successCount++;
+                            totalWeeks++;
+                            currentDate.setDate(currentDate.getDate() + 7);
+                        }
+                    }
+                } else if (timeInfo.type === 'year') {
+                    // Yearly allocation - distribute across all weeks in year
+                    for (let week = 1; week <= 52; week++) {
+                        const weekValue = week + (timeInfo.year * 100);
+                        await saveEffort(employee.id, project.id, weekValue, days);
+                        successCount++;
+                        totalWeeks++;
+                    }
+                }
+                
+                // Show saved message for bulk allocation
+                showSavedMessage();
+                
+                // Refresh the grid to show changes
+                renderAllocationGrid();
+                
+                const totalDays = successCount * days;
+                let timeDescription = '';
+                if (timeInfo.type === 'week') {
+                    timeDescription = window.pendingAllocation ? window.pendingAllocation.originalTimeString || `${totalWeeks} weeks` : `${totalWeeks} weeks`;
+                } else if (timeInfo.type === 'month') {
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    timeDescription = `${monthNames[timeInfo.month - 1]} ${timeInfo.year}`;
+                } else if (timeInfo.type === 'quarter') {
+                    timeDescription = `Q${timeInfo.quarter} ${timeInfo.year}`;
+                } else if (timeInfo.type === 'year') {
+                    timeDescription = `${timeInfo.year}`;
+                }
+                
+                return `✅ <strong>Resource allocation successful!</strong><br><br>
+                📋 <strong>Details:</strong><br>
+                👤 Employee: ${employee.name}<br>
+                🎯 Project: ${project.name}<br>
+                ⏱️ Effort: ${days} days per week<br>
+                📅 Period: ${timeDescription}<br>
+                📊 Total: ${totalDays} days across ${totalWeeks} weeks<br><br>
+                🔄 The allocation table has been updated and data saved to database!`;
+                
+            } catch (error) {
+                return `❌ Error saving allocation: ${error.message}`;
+            }
+        }
+        
+        function clearChatContext() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            messagesContainer.innerHTML = `
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        Chat cleared! I'm your Resource Allocation Assistant. I can help you with:
+                        <br>• Understanding the allocation system
+                        <br>• Explaining features and shortcuts
+                        <br>• Troubleshooting issues
+                        <br>• Best practices for resource planning
+                        <br>• Manage allocation
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Logout function with smooth delay
+        function logout() {
+            // Add visual feedback
+            const logoutBtn = event.target;
+            const originalText = logoutBtn.textContent;
+            logoutBtn.textContent = '🔄 Logging out...';
+            logoutBtn.style.opacity = '0.7';
+            logoutBtn.disabled = true;
+            
+            // Smooth delay for better UX
+            setTimeout(() => {
+                window.location.href = '/logout';
+            }, 800);
+        }
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/user');
+                const user = await response.json();
+                document.getElementById('userInfo').textContent = `Welcome, ${user.name}`;
+                
+                // Show admin link and hide workload link if user is admin
+                if (user.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+                    document.getElementById('workloadLink').style.display = 'none';
+                }
+                
+                // Disable editing for viewer role
+                if (user.role === 'viewer') {
+                    disableEditingForViewer();
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+        
+        function disableEditingForViewer() {
+            // Hide edit buttons
+            const editButtons = document.querySelectorAll('button[onclick*="clearAllData"], button[onclick*="setCurrentWeek"], button[onclick*="toggleProjectColors"]');
+            editButtons.forEach(btn => btn.style.display = 'none');
+            
+            // Make all effort inputs readonly
+            document.addEventListener('DOMContentLoaded', function() {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'childList') {
+                            const effortInputs = document.querySelectorAll('.effort-input');
+                            effortInputs.forEach(input => {
+                                input.readOnly = true;
+                                input.style.backgroundColor = '#f8fafc';
+                                input.style.cursor = 'not-allowed';
+                                input.title = 'View only - Contact admin for editing access';
+                            });
+                        }
+                    });
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            });
+        }
+        
+        function showSavedMessage() {
+            // Remove existing message if any
+            const existingMsg = document.getElementById('savedMessage');
+            if (existingMsg) existingMsg.remove();
+            
+            // Create and show saved message
+            const msg = document.createElement('div');
+            msg.id = 'savedMessage';
+            msg.innerHTML = '✅ Saved';
+            msg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; font-weight: 500; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            document.body.appendChild(msg);
+            
+            // Auto remove after 2 seconds
+            setTimeout(() => msg.remove(), 2000);
+        }
+        
+        function showErrorMessage(message) {
+            // Remove existing message if any
+            const existingMsg = document.getElementById('errorMessage');
+            if (existingMsg) existingMsg.remove();
+            
+            // Create and show error message
+            const msg = document.createElement('div');
+            msg.id = 'errorMessage';
+            msg.innerHTML = `❌ ${message}`;
+            msg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; font-weight: 500; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            document.body.appendChild(msg);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => msg.remove(), 3000);
+        }
+        
+        // Load data on page load
+        initializeWeekSelector();
+        loadData();
+        loadUserInfo();
+    </script>
+</body>
+</html>

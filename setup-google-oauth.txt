@@ -1,0 +1,14 @@
+GOOGLE OAUTH SETUP STEPS:
+
+1. Go to: https://console.cloud.google.com/
+2. Create new project or select existing
+3. Go to "APIs & Services" > "Credentials"
+4. Click "Create Credentials" > "OAuth 2.0 Client IDs"
+5. Choose "Web application"
+6. Add this redirect URI: http://localhost:5000/auth/google/callback
+7. Copy Client ID and Client Secret
+8. Replace in .env file:
+   GOOGLE_CLIENT_ID=your_actual_client_id
+   GOOGLE_CLIENT_SECRET=your_actual_client_secret
+
+Then restart server: node server.js
