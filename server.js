@@ -9,7 +9,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 require('dotenv').config();
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -51,7 +51,9 @@ const ROLES = {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/auth/google/callback'
+    callbackURL: process.env.NODE_ENV === 'production' 
+        ? 'https://resource-allocation-lnba.onrender.com/auth/google/callback'
+        : '/auth/google/callback'
 }, async (accessToken, refreshToken, profile, done) => {
     const email = profile.emails[0].value;
     
@@ -130,14 +132,10 @@ function requireAnyUser(req, res, next) {
     return requireRole([ROLES.USER, ROLES.ADMIN, ROLES.VIEWER])(req, res, next);
 }
 
-// Initialize PostgreSQL connection pool
+// Initialize PostgreSQL connection pool for Render
 const pool = new Pool({
-    host: '127.0.0.1',
-    port: 1433,
-    database: 'resource_allocation',
-    user: 'postgres',
-    password: '070681642Horwang@',
-    ssl: false,
+    connectionString: process.env.DATABASE_URL || 'postgresql://admin:TslQFDkaY7VpeBo4WNDbdsjvWYeil3F6@dpg-d2c3dmqdbo4c73bb4eu0-a.oregon-postgres.render.com/resource_allocation',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     connectionTimeoutMillis: 10000
 });
 
@@ -723,8 +721,8 @@ function generateIntelligentResponse(query) {
     // Resource availability queries
     if (lowerQuery.includes('available') || lowerQuery.includes('capacity') || lowerQuery.includes('free')) {
         const responses = [
-            "🔍 Finding Available Capacity:\n\n• Look for employees with <5 days weekly workload in the 'Underutilized' section\n• Use filters to view specific departments or time periods\n• Check the workload visualization charts for quick capacity overview\n• Consider redistributing tasks from overloaded team members\n• Monitor department-level capacity to identify bottlenecks\n\n💡 Pro Tip: Maintain 10-15% buffer capacity for urgent requests.",
-            "👥 Available Team Capacity Analysis:\n\n• Review the 'Underutilized' employees in your dashboard\n• Filter by department to find specific skill sets\n• Use the bar chart to visually identify capacity gaps\n• Cross-reference with project timelines for optimal allocation\n• Consider skill development opportunities for available staff\n\n✨ Smart Tip: Available capacity is your competitive advantage!"
+            "🔍 Finding Available Capacity:\\n\\n• Look for employees with <5 days weekly workload in the 'Underutilized' section\\n• Use filters to view specific departments or time periods\\n• Check the workload visualization charts for quick capacity overview\\n• Consider redistributing tasks from overloaded team members\\n• Monitor department-level capacity to identify bottlenecks\\n\\n💡 Pro Tip: Maintain 10-15% buffer capacity for urgent requests.",
+            "👥 Available Team Capacity Analysis:\\n\\n• Review the 'Underutilized' employees in your dashboard\\n• Filter by department to find specific skill sets\\n• Use the bar chart to visually identify capacity gaps\\n• Cross-reference with project timelines for optimal allocation\\n• Consider skill development opportunities for available staff\\n\\n✨ Smart Tip: Available capacity is your competitive advantage!"
         ];
         return responses[Math.floor(Math.random() * responses.length)];
     }
@@ -732,52 +730,52 @@ function generateIntelligentResponse(query) {
     // Overload management queries
     if (lowerQuery.includes('overload') || lowerQuery.includes('busy') || lowerQuery.includes('too much work')) {
         const responses = [
-            "⚠️ Managing Overloaded Employees (>5 days/week):\n\n1. Identify Root Causes: Check which projects are causing the overload\n2. Redistribute Tasks: Move non-critical work to available team members\n3. Timeline Adjustment: Consider extending project deadlines if possible\n4. Priority Review: Discuss project priorities with stakeholders\n5. Trend Monitoring: Track workload patterns to prevent future overloads\n\n🎯 Goal: Aim for sustainable 5-day weekly allocations across your team.",
-            "🚀 Overload Resolution Strategy:\n\n• Immediate Action: Identify tasks that can be delayed or delegated\n• Resource Rebalancing: Move work to team members with capacity\n• Process Optimization: Look for inefficiencies in current workflows\n• Stakeholder Communication: Set realistic expectations with clients\n• Prevention Planning: Implement early warning systems for future overloads\n\n📊 Remember: Sustainable workloads lead to better quality and team satisfaction."
+            "⚠️ Managing Overloaded Employees (>5 days/week):\\n\\n1. Identify Root Causes: Check which projects are causing the overload\\n2. Redistribute Tasks: Move non-critical work to available team members\\n3. Timeline Adjustment: Consider extending project deadlines if possible\\n4. Priority Review: Discuss project priorities with stakeholders\\n5. Trend Monitoring: Track workload patterns to prevent future overloads\\n\\n🎯 Goal: Aim for sustainable 5-day weekly allocations across your team.",
+            "🚀 Overload Resolution Strategy:\\n\\n• Immediate Action: Identify tasks that can be delayed or delegated\\n• Resource Rebalancing: Move work to team members with capacity\\n• Process Optimization: Look for inefficiencies in current workflows\\n• Stakeholder Communication: Set realistic expectations with clients\\n• Prevention Planning: Implement early warning systems for future overloads\\n\\n📊 Remember: Sustainable workloads lead to better quality and team satisfaction."
         ];
         return responses[Math.floor(Math.random() * responses.length)];
     }
     
     // Project assignment queries
     if (lowerQuery.includes('project') && (lowerQuery.includes('assign') || lowerQuery.includes('allocation'))) {
-        return "📋 Optimal Project Allocation Strategy:\n\n• Skill Matching: Align employee expertise with project requirements\n• Load Balancing: Distribute work evenly (target: 5 days/week per person)\n• Cross-functional Planning: Consider department capacity for multi-team projects\n• Progress Tracking: Monitor project advancement and adjust allocations\n• Visibility Maintenance: Keep all stakeholders informed of assignments\n\n🔄 Remember: Regular rebalancing ensures optimal resource utilization.";
+        return "📋 Optimal Project Allocation Strategy:\\n\\n• Skill Matching: Align employee expertise with project requirements\\n• Load Balancing: Distribute work evenly (target: 5 days/week per person)\\n• Cross-functional Planning: Consider department capacity for multi-team projects\\n• Progress Tracking: Monitor project advancement and adjust allocations\\n• Visibility Maintenance: Keep all stakeholders informed of assignments\\n\\n🔄 Remember: Regular rebalancing ensures optimal resource utilization.";
     }
     
     // Team management queries
     if (lowerQuery.includes('team') || lowerQuery.includes('department') || lowerQuery.includes('manage')) {
-        return "👥 Effective Team Workload Management:\n\n• Regular Monitoring: Review individual and department capacity weekly\n• Data-Driven Decisions: Use dashboard insights for workload balancing\n• Mentorship Opportunities: Leverage high-performers to guide others\n• Seasonal Planning: Anticipate and prepare for workload variations\n• Clear Communication: Maintain transparency about capacity and priorities\n\n📊 Use the dashboard filters and reports to get detailed team insights.";
+        return "👥 Effective Team Workload Management:\\n\\n• Regular Monitoring: Review individual and department capacity weekly\\n• Data-Driven Decisions: Use dashboard insights for workload balancing\\n• Mentorship Opportunities: Leverage high-performers to guide others\\n• Seasonal Planning: Anticipate and prepare for workload variations\\n• Clear Communication: Maintain transparency about capacity and priorities\\n\\n📊 Use the dashboard filters and reports to get detailed team insights.";
     }
     
     // Specific employee queries
     if (lowerQuery.includes('who is working') || lowerQuery.includes('which employees') || lowerQuery.includes('project team')) {
-        return "👤 Finding Project Team Members:\n\n• Detailed Reports: Use the reports section to see project assignments\n• Project Filtering: Filter by project name to view all team members\n• Effort Levels: Check individual contribution levels and time allocation\n• Visual Charts: Use workload visualization for graphical team overview\n• Department View: See cross-departmental project involvement\n\n🔍 Navigate to the detailed reports section for comprehensive project team data.";
+        return "👤 Finding Project Team Members:\\n\\n• Detailed Reports: Use the reports section to see project assignments\\n• Project Filtering: Filter by project name to view all team members\\n• Effort Levels: Check individual contribution levels and time allocation\\n• Visual Charts: Use workload visualization for graphical team overview\\n• Department View: See cross-departmental project involvement\\n\\n🔍 Navigate to the detailed reports section for comprehensive project team data.";
     }
     
     // Planning and optimization queries
     if (lowerQuery.includes('plan') || lowerQuery.includes('optimize') || lowerQuery.includes('improve')) {
-        return "🎯 Resource Planning Best Practices:\n\n1. Historical Analysis: Study past workload patterns for future predictions\n2. Buffer Capacity: Maintain 10-15% spare capacity for urgent work\n3. Cross-Training: Develop versatile team members for flexibility\n4. Hiring Insights: Use workload data to inform recruitment decisions\n5. Priority Management: Regularly review and adjust project importance\n\n📈 Continuous optimization leads to better team performance and satisfaction.";
+        return "🎯 Resource Planning Best Practices:\\n\\n1. Historical Analysis: Study past workload patterns for future predictions\\n2. Buffer Capacity: Maintain 10-15% spare capacity for urgent work\\n3. Cross-Training: Develop versatile team members for flexibility\\n4. Hiring Insights: Use workload data to inform recruitment decisions\\n5. Priority Management: Regularly review and adjust project importance\\n\\n📈 Continuous optimization leads to better team performance and satisfaction.";
     }
     
     // Workload analysis queries
     if (lowerQuery.includes('workload') || lowerQuery.includes('analysis') || lowerQuery.includes('summary')) {
-        return "📊 Workload Analysis Insights:\n\n• Dashboard Metrics: Review team capacity utilization patterns\n• Balance Assessment: Compare overloaded vs. underutilized employees\n• Department Analysis: Identify resource gaps across teams\n• Project Distribution: Ensure balanced assignment across initiatives\n• Project Types: Consider both paid and non-paid work in planning\n\n💡 Use the time period filters to analyze trends and make informed decisions.";
+        return "📊 Workload Analysis Insights:\\n\\n• Dashboard Metrics: Review team capacity utilization patterns\\n• Balance Assessment: Compare overloaded vs. underutilized employees\\n• Department Analysis: Identify resource gaps across teams\\n• Project Distribution: Ensure balanced assignment across initiatives\\n• Project Types: Consider both paid and non-paid work in planning\\n\\n💡 Use the time period filters to analyze trends and make informed decisions.";
     }
     
     // Specific data queries
     if (lowerQuery.includes('highest workload') || lowerQuery.includes('most busy')) {
-        return "📈 Finding Highest Workload:\n\n• Employee View: Sort employees by total workload in the detailed reports\n• Department Comparison: Check department-level workload summaries\n• Project Analysis: Identify which projects require the most resources\n• Time Period: Use filters to analyze specific weeks, months, or quarters\n• Visual Charts: Bar charts show workload distribution clearly\n\n🔍 Check the workload visualization section for immediate insights.";
+        return "📈 Finding Highest Workload:\\n\\n• Employee View: Sort employees by total workload in the detailed reports\\n• Department Comparison: Check department-level workload summaries\\n• Project Analysis: Identify which projects require the most resources\\n• Time Period: Use filters to analyze specific weeks, months, or quarters\\n• Visual Charts: Bar charts show workload distribution clearly\\n\\n🔍 Check the workload visualization section for immediate insights.";
     }
     
     // Help and guidance queries
     if (lowerQuery.includes('help') || lowerQuery.includes('how to') || lowerQuery.includes('guide')) {
-        return "🤖 AI Workload Assistant Help:\n\nI can assist you with:\n• Employee Availability: Find team members with spare capacity\n• Overload Management: Strategies for managing busy employees\n• Project Assignments: Optimal allocation recommendations\n• Team Analysis: Department and individual workload insights\n• Planning Advice: Best practices for resource management\n\n❓ Try asking specific questions like:\n• 'Which employees have available capacity?'\n• 'How can I manage overloaded team members?'\n• 'What's the workload by department?'";
+        return "🤖 AI Workload Assistant Help:\\n\\nI can assist you with:\\n• Employee Availability: Find team members with spare capacity\\n• Overload Management: Strategies for managing busy employees\\n• Project Assignments: Optimal allocation recommendations\\n• Team Analysis: Department and individual workload insights\\n• Planning Advice: Best practices for resource management\\n\\n❓ Try asking specific questions like:\\n• 'Which employees have available capacity?'\\n• 'How can I manage overloaded team members?'\\n• 'What's the workload by department?'";
     }
     
     // Random varied default responses
     const defaultResponses = [
-        "🤖 AI Workload Assistant Ready!\n\nI'm here to help you optimize your team's resource allocation. I can provide insights on:\n\n• 👥 Employee availability and capacity\n• ⚠️ Managing overloaded team members\n• 📋 Project assignment strategies\n• 🏢 Department workload analysis\n• 🎯 Team management best practices\n\n💬 Ask me anything about your team's workload!",
-        "🚀 Resource Optimization Assistant Active!\n\nI specialize in helping you:\n\n• 🔍 Identify available team capacity\n• ⚖️ Balance workloads across projects\n• 📈 Analyze department performance\n• 📊 Track resource utilization trends\n• 🎯 Optimize project assignments\n\n💡 What resource challenge can I help you solve today?",
-        "🌟 Smart Workload Management at Your Service!\n\nI can help you with:\n\n• 👥 Team capacity planning and analysis\n• 📋 Strategic project resource allocation\n• 📉 Workload distribution optimization\n• 🏢 Cross-department resource insights\n• ⚡ Quick solutions for resource bottlenecks\n\n🚀 Ready to maximize your team's potential?"
+        "🤖 AI Workload Assistant Ready!\\n\\nI'm here to help you optimize your team's resource allocation. I can provide insights on:\\n\\n• 👥 Employee availability and capacity\\n• ⚠️ Managing overloaded team members\\n• 📋 Project assignment strategies\\n• 🏢 Department workload analysis\\n• 🎯 Team management best practices\\n\\n💬 Ask me anything about your team's workload!",
+        "🚀 Resource Optimization Assistant Active!\\n\\nI specialize in helping you:\\n\\n• 🔍 Identify available team capacity\\n• ⚖️ Balance workloads across projects\\n• 📈 Analyze department performance\\n• 📊 Track resource utilization trends\\n• 🎯 Optimize project assignments\\n\\n💡 What resource challenge can I help you solve today?",
+        "🌟 Smart Workload Management at Your Service!\\n\\nI can help you with:\\n\\n• 👥 Team capacity planning and analysis\\n• 📋 Strategic project resource allocation\\n• 📉 Workload distribution optimization\\n• 🏢 Cross-department resource insights\\n• ⚡ Quick solutions for resource bottlenecks\\n\\n🚀 Ready to maximize your team's potential?"
     ];
     
     return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
